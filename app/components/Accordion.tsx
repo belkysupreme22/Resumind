@@ -72,7 +72,7 @@ export const AccordionItem: React.FC<AccordionItemProps> = ({
                                                                 className = "",
                                                             }) => {
     return (
-        <div className={`overflow-hidden border-b border-gray-200 ${className}`}>
+        <div className={`accordion-item ${className}`}>
             {children}
         </div>
     );
@@ -102,7 +102,7 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
                 "rotate-180": isActive,
             })}
             fill="none"
-            stroke="#98A2B3"
+            stroke="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
         >
@@ -122,12 +122,7 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
     return (
         <button
             onClick={handleClick}
-            className={`
-        w-full px-4 py-3 text-left
-        focus:outline-none
-        transition-colors duration-200 flex items-center justify-between cursor-pointer
-        ${className}
-      `}
+            className={`accordion-trigger ${className}`}
         >
             <div className="flex items-center space-x-3">
                 {iconPosition === "left" && (icon || defaultIcon)}
@@ -160,7 +155,7 @@ export const AccordionContent: React.FC<AccordionContentProps> = ({
         ${className}
       `}
         >
-            <div className="px-4 py-3 ">{children}</div>
+            <div className="accordion-content">{children}</div>
         </div>
     );
 };

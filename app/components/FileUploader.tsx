@@ -1,21 +1,22 @@
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { formatSize } from "~/lib/utils";
 interface FileUploaderProps {
   onFileSelect?: (file: File | null) => void;
 }
 const FileUploader = ({ onFileSelect }: FileUploaderProps) => {
+  const [file, setFile] = useState<File | null>(null);
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0] || null;
-
+      setFile(file);
       onFileSelect?.(file);
     },
     [onFileSelect]
   );
 
   const maxFileSize = 20 * 1024 * 1024;
-  const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
+  const { getRootProps, getInputProps, isDragActive } =
     useDropzone({
       onDrop,
       multiple: false,
@@ -23,12 +24,10 @@ const FileUploader = ({ onFileSelect }: FileUploaderProps) => {
       maxSize: maxFileSize,
     });
 
-  const file = acceptedFiles[0] || null;
-
   return (
     <div className="w-full gradient-border">
-      <div {...getRootProps()}>
-        <input {...getInputProps()} />
+      <div {...getRootProps({ className: "uploader-drag-area", "aria-label": "Upload Resume" })} data-drag-active={isDragActive}>
+        <input {...getInputProps({ id: "uploader" })} />
         <div className="space-y-4 cursor-pointer">
           {file ? (
             <div
@@ -38,7 +37,7 @@ const FileUploader = ({ onFileSelect }: FileUploaderProps) => {
               <img src="/images/pdf.png" alt="pdf" className="size-10" />
               <div className="flex items-center space-x-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-700 truncate mx-w-xs">
+                  <p className="text-sm font-medium text-ink break-all">
                     {file.name}
                   </p>
                   <p className="text-sm text-gray-500">
@@ -46,7 +45,9 @@ const FileUploader = ({ onFileSelect }: FileUploaderProps) => {
                   </p>
                 </div>
               </div>
-              <button className="p-2 cursor-pointer" onClick={(e) => {
+              <button type="button" aria-label="Remove file" className="p-2 cursor-pointer rounded-lg" onClick={(e) => {
+                e.stopPropagation();
+                setFile(null);
                 onFileSelect?.(null);
               }}>
                 <img src="/icons/cross.svg" alt="remove" className="w-4 h-4"/>

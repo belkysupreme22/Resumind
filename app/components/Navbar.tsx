@@ -24,7 +24,7 @@ const NavBar = () => {
   return (
     <nav className="navbar">
       <Link to="/">
-        <p className="text-2xl font-bold text-gradient">RESUMIND</p>
+        <p className="brand-wordmark text-2xl font-bold text-gradient">RESUMIND</p>
       </Link>
       {/* <Link to="/upload" className="primary-button w-fit">
         Upload Resume
@@ -36,7 +36,7 @@ const NavBar = () => {
 
         <div className="relative" ref={menuRef}>
           <button
-            className="flex items-center gap-2 text-xl font-semi-bold relative"
+            className="profile-trigger"
             onClick={() => setShowMenu((v) => !v)}
             aria-label="Profile menu"
           >
@@ -47,7 +47,7 @@ const NavBar = () => {
 
             {showMenu && (
               <div
-                className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden"
+                className="profile-menu"
               >
                 <div className="flex flex-col py-2">
                   

@@ -85,11 +85,19 @@ label {
   font-weight: 500;
 }
 input {
-  @apply w-full p-4 inset-shadow rounded-2xl focus:outline-none bg-white;
+  @apply w-full p-4 rounded-panel border border-line bg-raised text-ink;
 }
 
 textarea {
-  @apply w-full p-4 inset-shadow rounded-2xl focus:outline-none bg-white;
+  @apply w-full p-4 rounded-panel border border-line bg-raised text-ink;
+  resize: vertical;
+  min-height: 144px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
 }
 
 form {
@@ -97,29 +105,103 @@ form {
 }
 
 @layer components {
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#AB8C95] via-[#000000] to-[#8E97C5];
+  .brand-wordmark {
+    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.01em;
   }
   .gradient-border {
-    @apply bg-gradient-to-b from-light-blue-100 to-light-blue-200 p-4 rounded-2xl;
+    @apply bg-surface p-2 rounded-panel border border-line;
   }
-  .primary-button {
-    @apply primary-gradient text-white rounded-full px-4 py-2 cursor-pointer w-full;
+  .primary-button,
+  .auth-button {
+    @apply inline-flex items-center justify-center bg-brand text-white rounded-panel px-6 py-4 cursor-pointer font-medium;
+    min-height: 48px;
+    font-size: 14px;
+    line-height: 1.2;
+    text-align: center;
+  }
+  .primary-button:hover,
+  .auth-button:hover {
+    background: var(--color-brand-hover);
+  }
+  .panel {
+    @apply bg-raised rounded-panel shadow-panel;
+  }
+  .profile-trigger {
+    @apply flex items-center gap-2 rounded-panel border border-line bg-raised p-2 text-ink font-medium cursor-pointer;
+    min-height: 48px;
+  }
+  .profile-menu {
+    @apply absolute right-0 mt-2 w-40 bg-raised border border-line rounded-panel shadow-float z-20 overflow-hidden;
+  }
+  .profile-menu button {
+    min-height: 48px;
+  }
+  .score-badge {
+    @apply inline-flex items-center justify-center gap-2 px-2 py-2 rounded-lg;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .summary-heading {
+    @apply flex items-center gap-6 p-6 border-b border-line;
+  }
+  .summary-heading h2 {
+    @apply text-xl font-semibold;
+  }
+  .summary-heading p {
+    @apply text-sm text-muted;
+  }
+  .ats-panel {
+    @apply bg-raised rounded-panel shadow-panel w-full p-6 border-t-4;
+  }
+  .ats-good { border-top-color: var(--color-badge-green-text); }
+  .ats-warning { border-top-color: var(--color-badge-yellow-text); }
+  .ats-bad { border-top-color: var(--color-badge-red-text); }
+  .tip-overview {
+    @apply bg-surface w-full rounded-panel p-4 grid grid-cols-2 gap-4;
+  }
+  .tip-panel {
+    @apply flex flex-col gap-2 rounded-panel p-4;
+  }
+  .accordion-item {
+    @apply overflow-hidden rounded-panel border border-line bg-raised;
+  }
+  .accordion-trigger {
+    @apply w-full p-4 text-left flex items-center justify-between gap-4 cursor-pointer;
+  }
+  .accordion-trigger:hover {
+    background: var(--color-surface);
+  }
+  .accordion-content {
+    @apply px-4 pb-4;
+  }
+  .delete-resume {
+    @apply absolute top-4 right-4 rounded-lg p-2 bg-raised border border-line cursor-pointer disabled:opacity-50;
+  }
+  .delete-resume:hover {
+    background: var(--color-badge-red);
   }
   .resume-nav {
     @apply flex flex-row justify-between items-center p-4 border-b border-gray-200;
   }
   .resume-summary {
-    @apply flex flex-row items-center justify-center p-4 gap-4;
+    @apply flex flex-row items-center justify-center px-6 py-4;
     .category {
-      @apply flex flex-row gap-2 items-center bg-gray-50 rounded-2xl p-4 w-full justify-between;
+      @apply flex flex-row gap-4 items-center w-full justify-between;
+    }
+    & + & {
+      border-top: 1px solid var(--color-line);
     }
   }
   .back-button {
-    @apply flex flex-row items-center gap-2 border border-gray-200 rounded-lg p-2 shadow-sm;
+    @apply inline-flex flex-row items-center gap-2 border border-line bg-raised rounded-panel p-4 text-ink;
+  }
+  .back-button:hover {
+    background: var(--color-surface);
   }
   .auth-button {
-    @apply primary-gradient rounded-full py-4 px-8 cursor-pointer w-[600px] max-md:w-full text-3xl font-semibold text-white;
+    width: 100%;
+    font-size: 16px;
   }
   .main-section {
     @apply flex flex-col items-center gap-8 pt-12 max-sm:mx-2 mx-15 pb-5;
@@ -132,7 +214,10 @@ form {
   }
 
   .resume-card {
-    @apply flex flex-col gap-8 h-[560px] w-[350px] lg:w-[430px] xl:w-[490px] bg-white rounded-2xl p-4;
+    @apply flex flex-col gap-8 h-[560px] w-[350px] lg:w-[430px] xl:w-[490px] bg-raised rounded-panel p-6 border border-line shadow-panel;
+  }
+  .resume-card:hover {
+    border-color: var(--color-brand);
   }
 
   .resume-card-header {
@@ -144,27 +229,28 @@ form {
   }
 
   .navbar {
-    @apply flex flex-row justify-between items-center bg-white rounded-full p-4 w-full px-10 max-w-[1200px] mx-auto;
-  }
-
-  .score-badge {
-    @apply flex flex-row items-center justify-center py-1 px-2 gap-4 rounded-[96px];
+    @apply flex flex-row justify-between items-center border-b border-line bg-canvas p-4 w-full px-10 max-w-[1200px] mx-auto;
   }
 
   .form-div {
     @apply flex flex-col gap-2 w-full items-start;
   }
 
-  .uplader-drag-area {
-    @apply relative p-8 text-center transition-all duration-700 cursor-pointer bg-white rounded-2xl min-h-[208px];
+  .uploader-drag-area {
+    @apply relative p-8 text-center cursor-pointer bg-raised rounded-panel min-h-[208px] border border-dashed border-line;
+  }
+  .uploader-drag-area:hover,
+  .uploader-drag-area[data-drag-active="true"] {
+    border-color: var(--color-accent);
+    background: var(--color-surface);
   }
   .uploader-selected-file {
-    @apply flex items-center justify-between p-3 bg-gray-50 rounded-2xl;
+    @apply flex items-center justify-between gap-4 p-4 bg-surface rounded-panel text-left;
   }
 }
 
 @utility bg-gradient {
-  background: linear-gradient(to bottom, #f0f4ff 60%, #fa7185cc);
+  background: var(--color-canvas);
 }
 
 @utility text-gradient {
@@ -172,21 +258,19 @@ form {
 }
 
 @utility gradient-hover {
-  @apply bg-gradient-to-b from-light-blue-100 to-light-blue-200;
+  background: var(--color-surface);
 }
 
 @utility primary-gradient {
-  background: linear-gradient(to bottom, #8e98ff, #606beb);
-  box-shadow: 0px 74px 21px 0px #6678ef00;
+  background: var(--color-brand);
 }
 
 @utility primary-gradient-hover {
-  background: linear-gradient(to bottom, #717dff, #4957eb);
+  background: var(--color-brand-hover);
 }
 
 @utility inset-shadow {
-  box-shadow: inset 0 0 12px 0 rgba(36, 99, 235, 0.2);
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-panel);
 }
 
 @keyframes fadeIn {

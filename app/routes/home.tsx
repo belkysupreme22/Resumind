@@ -4,7 +4,6 @@ import NavBar from "~/components/Navbar";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { usePuterStore } from "~/lib/puter";
-import { Trash2 } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -93,7 +92,7 @@ export default function Home() {
                   aria-label="Delete resume"
                   disabled={deletingId === resume.id}
                   onClick={() => handleDeleteResume(resume)}
-                  className="absolute top-2 right-2 rounded-md p-2 hover:bg-black/5 disabled:opacity-50"
+                  className="delete-resume"
                   title={deletingId === resume.id ? "Removing..." : "Delete"}
                 >
                   {/* tiny inline trash icon */}
