@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./styles/marketing.css";
 @source not "../livery-scholarxiv-com-v4";
 
 @theme {
