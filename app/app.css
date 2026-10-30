@@ -1,10 +1,27 @@
-@import url("https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
+@source not "../livery-scholarxiv-com-v4";
 
 @theme {
-  --font-sans: "Mona Sans", ui-sans-serif, system-ui, sans-serif,
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --color-canvas: #ffffff;
+  --color-surface: #f4f4f5;
+  --color-raised: #ffffff;
+  --color-ink: #09090b;
+  --color-muted: #52525b;
+  --color-line: #e4e4e7;
+  --color-accent: #ad46ff;
+  --color-on-accent: #000000;
+  --color-brand: #606beb;
+  --color-brand-hover: #4957eb;
+  --color-gray-500: #62626b;
+  --color-gray-600: #52525b;
+  --color-gray-700: #3f3f46;
+  --color-gray-800: #27272a;
+  --radius-panel: 12px;
+  --shadow-panel: 0 0 0 1px rgb(0 0 0 / 8%) inset;
+  --shadow-float: 0 1px 2px rgb(0 0 0 / 5%), 0 8px 24px rgb(0 0 0 / 4%);
   --color-dark-200: #475467;
   --color-light-blue-100: #c1d3f81a;
   --color-light-blue-200: #a7bff14d;
@@ -18,24 +35,54 @@
   --color-badge-yellow-text: #73321b;
 }
 
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #171717;
+  --color-surface: #262626;
+  --color-raised: #1f1f21;
+  --color-ink: #ffffff;
+  --color-muted: #a1a1aa;
+  --color-line: #404040;
+  --color-gray-500: #a1a1aa;
+  --color-gray-600: #d4d4d8;
+  --color-gray-700: #e4e4e7;
+  --color-gray-800: #fafafa;
+  --shadow-panel: 0 0 0 1px rgb(255 255 255 / 12%) inset;
+  --shadow-float: 0 1px 2px rgb(0 0 0 / 16%), 0 8px 24px rgb(0 0 0 / 12%);
+}
+
 html,
 body {
-  @apply bg-white;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
 }
 
 main {
   @apply min-h-screen pt-10;
 }
 h1 {
-  @apply max-sm:text-[3rem] text-6xl  text-gradient leading-tight xl:tracking-[-2px] font-semibold;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  text-wrap: balance;
 }
 
 h2 {
-  @apply max-sm:text-xl text-3xl text-dark-200;
+  color: var(--color-ink);
+  font-size: clamp(1.25rem, 2.4vw, 1.5rem);
+  line-height: 1.33;
+  letter-spacing: -0.01em;
 }
 
 label {
-  @apply text-dark-200;
+  color: var(--color-ink);
+  font-weight: 500;
 }
 input {
   @apply w-full p-4 inset-shadow rounded-2xl focus:outline-none bg-white;
