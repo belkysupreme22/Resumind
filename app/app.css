@@ -11,10 +11,17 @@
   --color-ink: #09090b;
   --color-muted: #52525b;
   --color-line: #e4e4e7;
+  --color-control-border: #85858f;
   --color-accent: #ad46ff;
   --color-on-accent: #000000;
   --color-brand: #606beb;
   --color-brand-hover: #4957eb;
+  --color-action: #ffffff;
+  --color-on-action: #09090b;
+  --color-action-hover: #f4f4f580;
+  --color-score-good: var(--color-green-700);
+  --color-score-warning: var(--color-yellow-700);
+  --color-score-bad: var(--color-red-700);
   --color-gray-500: #62626b;
   --color-gray-600: #52525b;
   --color-gray-700: #3f3f46;
@@ -35,6 +42,8 @@
   --color-badge-yellow-text: #73321b;
 }
 
+:root { color-scheme: light; }
+
 [data-theme="dark"] {
   color-scheme: dark;
   --color-canvas: #171717;
@@ -43,6 +52,13 @@
   --color-ink: #ffffff;
   --color-muted: #a1a1aa;
   --color-line: #404040;
+  --color-control-border: #85858f;
+  --color-action: #262626;
+  --color-on-action: #ffffff;
+  --color-action-hover: #404040;
+  --color-score-good: #d5faf1;
+  --color-score-warning: #fceed8;
+  --color-score-bad: #f9e3e2;
   --color-gray-500: #a1a1aa;
   --color-gray-600: #d4d4d8;
   --color-gray-700: #e4e4e7;
@@ -51,16 +67,20 @@
   --shadow-float: 0 1px 2px rgb(0 0 0 / 16%), 0 8px 24px rgb(0 0 0 / 12%);
 }
 
+@layer base {
+html { font-size: 16px; }
+
 html,
 body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-size: 14px;
   line-height: 1.5;
-  color-scheme: light;
+  color-scheme: inherit;
   -webkit-font-smoothing: antialiased;
 }
+
+body { font-size: 14px; }
 
 main {
   min-height: 100vh;
@@ -89,11 +109,11 @@ label {
   font-weight: 500;
 }
 input {
-  @apply w-full p-4 rounded-panel border border-line bg-raised text-ink;
+  @apply w-full p-4 rounded-panel border border-control-border bg-raised text-ink;
 }
 
 textarea {
-  @apply w-full p-4 rounded-panel border border-line bg-raised text-ink;
+  @apply w-full p-4 rounded-panel border border-control-border bg-raised text-ink;
   resize: vertical;
   min-height: 144px;
 }
@@ -107,6 +127,7 @@ textarea::placeholder {
 form {
   @apply flex flex-col items-start gap-8 w-full;
 }
+}
 
 @layer components {
   .brand-wordmark {
@@ -118,28 +139,40 @@ form {
   }
   .primary-button,
   .auth-button {
-    @apply inline-flex items-center justify-center bg-brand text-white rounded-panel px-6 py-4 cursor-pointer font-medium;
-    min-height: 48px;
+    @apply inline-flex items-center justify-center gap-2 bg-action text-on-action border border-line rounded-md px-4 py-2 cursor-pointer font-medium;
+    min-height: 40px;
     font-size: 14px;
     line-height: 1.2;
     text-align: center;
   }
   .primary-button:hover,
   .auth-button:hover {
-    background: var(--color-brand-hover);
+    background: var(--color-action-hover);
   }
   .panel {
     @apply bg-raised rounded-panel shadow-panel;
   }
   .profile-trigger {
-    @apply flex items-center gap-2 rounded-panel border border-line bg-raised p-2 text-ink font-medium cursor-pointer;
-    min-height: 48px;
+    @apply flex items-center gap-2 rounded border border-transparent bg-transparent px-4 py-2 text-muted font-medium cursor-pointer;
+    min-height: 40px;
+  }
+  .profile-trigger:hover {
+    background: var(--color-surface);
+    color: var(--color-ink);
   }
   .profile-menu {
     @apply absolute right-0 mt-2 w-40 bg-raised border border-line rounded-panel shadow-float z-20 overflow-hidden;
   }
   .profile-menu button {
     min-height: 48px;
+  }
+  .profile-logout {
+    @apply flex items-center gap-2 px-4 py-2 cursor-pointer;
+    color: var(--color-score-bad);
+  }
+  .profile-logout:hover {
+    background: var(--color-badge-red);
+    color: var(--color-badge-red-text);
   }
   .score-badge {
     @apply inline-flex items-center justify-center gap-2 px-2 py-2 rounded-lg;
@@ -158,9 +191,15 @@ form {
   .ats-panel {
     @apply bg-raised rounded-panel shadow-panel w-full p-6 border-t-4;
   }
-  .ats-good { border-top-color: var(--color-badge-green-text); }
-  .ats-warning { border-top-color: var(--color-badge-yellow-text); }
-  .ats-bad { border-top-color: var(--color-badge-red-text); }
+  .ats-good { border-top-color: var(--color-score-good); }
+  .ats-warning { border-top-color: var(--color-score-warning); }
+  .ats-bad { border-top-color: var(--color-score-bad); }
+  .ats-icon {
+    @apply inline-flex size-12 shrink-0 items-center justify-center rounded-panel;
+  }
+  .ats-good .ats-icon { color: var(--color-badge-green-text); background: var(--color-badge-green); }
+  .ats-warning .ats-icon { color: var(--color-badge-yellow-text); background: var(--color-badge-yellow); }
+  .ats-bad .ats-icon { color: var(--color-badge-red-text); background: var(--color-badge-red); }
   .tip-overview {
     @apply bg-surface w-full rounded-panel p-4 grid grid-cols-2 gap-4;
   }
@@ -180,11 +219,12 @@ form {
     @apply px-4 pb-4;
   }
   .delete-resume {
-    @apply absolute top-4 right-4 rounded-lg p-2 bg-raised border border-line cursor-pointer disabled:opacity-50;
+    @apply absolute top-4 right-4 rounded p-2 bg-transparent border border-transparent cursor-pointer disabled:opacity-50;
   }
   .delete-resume:hover {
     background: var(--color-badge-red);
   }
+  .delete-resume:hover svg { color: var(--color-badge-red-text); }
   .resume-nav {
     @apply flex flex-row justify-between items-center py-6 border-b border-line mx-auto;
     width: min(1200px, calc(100% - 48px));
@@ -199,14 +239,16 @@ form {
     }
   }
   .back-button {
-    @apply inline-flex flex-row items-center gap-2 border border-line bg-raised rounded-panel p-4 text-ink;
+    @apply inline-flex flex-row items-center gap-2 border border-transparent bg-transparent rounded-panel p-2 text-ink;
+    min-height: 40px;
+    font-size: 16px;
   }
   .back-button:hover {
     background: var(--color-surface);
   }
   .auth-button {
     width: 100%;
-    font-size: 16px;
+    min-height: 48px;
   }
   .main-section {
     @apply flex flex-col items-center gap-10 mx-auto;
@@ -236,7 +278,7 @@ form {
     min-height: 520px;
   }
   .resume-card:hover {
-    border-color: var(--color-brand);
+    border-color: var(--color-control-border);
   }
 
   .resume-card-header {
@@ -316,6 +358,7 @@ form {
   }
   #upload-form > .primary-button {
     width: 100%;
+    min-height: 48px;
   }
   .auth-page {
     @apply flex items-center justify-center p-6;
@@ -350,16 +393,37 @@ form {
   }
 
   .uploader-drag-area {
-    @apply relative p-8 text-center cursor-pointer bg-raised rounded-panel min-h-[208px] border border-dashed border-line;
+    @apply relative p-8 text-center cursor-pointer bg-raised rounded-panel min-h-[208px] border border-dashed border-control-border;
   }
   .uploader-drag-area:hover,
   .uploader-drag-area[data-drag-active="true"] {
-    border-color: var(--color-accent);
+    border-color: var(--color-ink);
     background: var(--color-surface);
   }
   .uploader-selected-file {
     @apply flex items-center justify-between gap-4 p-4 bg-surface rounded-panel text-left;
   }
+  .uploader-drag-area[data-has-file="true"] { padding: 8px; min-height: 0; }
+  .uploader-selected-file > div { min-width: 0; flex: 1; }
+  .uploader-selected-file > img,
+  .uploader-selected-file > button { flex-shrink: 0; }
+}
+
+:where(a, button, input, textarea, [role="button"]):focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+}
+
+button:disabled { cursor: not-allowed; }
+
+* { scrollbar-width: thin; scrollbar-color: var(--color-control-border) var(--color-surface); }
+
+[data-theme="dark"] .navbar > a:first-child {
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 8px;
+  margin-left: -8px;
 }
 
 @media (max-width: 1100px) {
@@ -377,7 +441,7 @@ form {
   .navbar, .main-section, .resume-nav { width: calc(100% - 32px); }
   .navbar { gap: 8px; padding-block: 16px; min-height: 80px; }
   .navbar-actions { gap: 8px; }
-  .navbar .primary-button { padding: 16px; font-size: 12px; }
+  .navbar .primary-button { padding: 8px 16px; min-height: 44px; }
   .brand-wordmark { font-size: 20px; }
   .profile-trigger { border-color: transparent; }
   .profile-name { display: none; }

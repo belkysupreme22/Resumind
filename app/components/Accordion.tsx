@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useId, useState } from "react";
 import { cn } from "~/lib/utils";
+import { ChevronDown } from "lucide-react";
 
 interface AccordionContextType {
+    idPrefix: string;
     activeItems: string[];
     toggleItem: (id: string) => void;
     isItemActive: (id: string) => boolean;
@@ -33,6 +35,7 @@ export const Accordion: React.FC<AccordionProps> = ({
                                                         allowMultiple = false,
                                                         className = "",
                                                     }) => {
+    const idPrefix = useId();
     const [activeItems, setActiveItems] = useState<string[]>(
         defaultOpen ? [defaultOpen] : []
     );
@@ -53,7 +56,7 @@ export const Accordion: React.FC<AccordionProps> = ({
 
     return (
         <AccordionContext.Provider
-            value={{ activeItems, toggleItem, isItemActive }}
+            value={{ idPrefix, activeItems, toggleItem, isItemActive }}
         >
             <div className={`space-y-2 ${className}`}>{children}</div>
         </AccordionContext.Provider>
@@ -93,26 +96,17 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
                                                                     icon,
                                                                     iconPosition = "right",
                                                                 }) => {
-    const { toggleItem, isItemActive } = useAccordion();
+    const { idPrefix, toggleItem, isItemActive } = useAccordion();
     const isActive = isItemActive(itemId);
 
     const defaultIcon = (
-        <svg
-            className={cn("w-5 h-5 transition-transform duration-200", {
+        <ChevronDown
+            aria-hidden="true"
+            className={cn("size-4 shrink-0 transition-transform duration-200", {
                 "rotate-180": isActive,
             })}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-            />
-        </svg>
+            strokeWidth={2}
+        />
     );
 
     const handleClick = () => {
@@ -121,6 +115,10 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
 
     return (
         <button
+            type="button"
+            id={`${idPrefix}-${itemId}-trigger`}
+            aria-expanded={isActive}
+            aria-controls={`${idPrefix}-${itemId}-content`}
             onClick={handleClick}
             className={`accordion-trigger ${className}`}
         >
@@ -144,11 +142,14 @@ export const AccordionContent: React.FC<AccordionContentProps> = ({
                                                                       children,
                                                                       className = "",
                                                                   }) => {
-    const { isItemActive } = useAccordion();
+    const { idPrefix, isItemActive } = useAccordion();
     const isActive = isItemActive(itemId);
 
     return (
         <div
+            id={`${idPrefix}-${itemId}-content`}
+            role="region"
+            aria-labelledby={`${idPrefix}-${itemId}-trigger`}
             hidden={!isActive}
             className={`accordion-body ${isActive ? "is-open" : ""} ${className}`}
         >

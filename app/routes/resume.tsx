@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import { ArrowLeft } from "lucide-react";
 import ATS from "~/components/ATS";
 import Details from "~/components/Details";
 import Summary from "~/components/Summary";
@@ -57,7 +58,7 @@ const Resume = () => {
     <main className="app-page">
       <nav className="resume-nav">
         <Link to="/" className="back-button">
-          <img src="/icons/back.svg" alt="logo" className="w-2.5 h-2.5" />
+          <ArrowLeft className="size-4" aria-hidden="true" />
           <span className="text-ink text-sm font-medium">
             Back to Homepage
           </span>
@@ -72,6 +73,7 @@ const Resume = () => {
                   src={imageUrl}
                   className="w-full"
                   title="resume"
+                  alt="Resume preview"
                 />
               </a>
             </div>

@@ -5,6 +5,7 @@ import LoadingVisual from "~/components/LoadingVisual";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { usePuterStore } from "~/lib/puter";
+import { Trash2, Upload } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -96,10 +97,7 @@ export default function Home() {
                   className="delete-resume"
                   title={deletingId === resume.id ? "Removing..." : "Delete"}
                 >
-                  {/* tiny inline trash icon */}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-red-600">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6h18M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m1 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6m3 4v8m4-8v8" />
-                  </svg>
+                  <Trash2 className="size-4 text-score-bad" aria-hidden="true" />
                 </button>
               </div>
             ))}
@@ -110,8 +108,9 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center gap-4 mt-10">
             <Link
               to="/upload"
-              className="primary-button w-fit text-xl font-semi-bold"
+              className="primary-button w-fit"
             >
+              <Upload className="size-4" aria-hidden="true" />
               Upload Resume
             </Link>
           </div>

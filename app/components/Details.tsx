@@ -1,4 +1,5 @@
 import { cn } from "~/lib/utils";
+import FeedbackIcon from "./FeedbackIcon";
 import {
   Accordion,
   AccordionContent,
@@ -12,17 +13,13 @@ const ScoreBadge = ({ score }: { score: number }) => {
           className={cn(
               "score-badge",
               score > 69
-                  ? "bg-badge-green"
+                  ? "bg-badge-green text-badge-green-text"
                   : score > 39
-                      ? "bg-badge-yellow"
-                      : "bg-badge-red"
+                      ? "bg-badge-yellow text-badge-yellow-text"
+                      : "bg-badge-red text-badge-red-text"
           )}
       >
-        <img
-            src={score > 69 ? "/icons/check.svg" : "/icons/warning.svg"}
-            alt="score"
-            className="size-4"
-        />
+        <FeedbackIcon type={score > 69 ? "good" : "improve"} />
         <p
             className={cn(
                 "text-sm font-medium",
@@ -64,13 +61,7 @@ const CategoryContent = ({
         <div className="tip-overview">
           {tips.map((tip, index) => (
               <div className="flex flex-row gap-2 items-center" key={index}>
-                <img
-                    src={
-                      tip.type === "good" ? "/icons/check.svg" : "/icons/warning.svg"
-                    }
-                    alt="score"
-                    className="size-5"
-                />
+                <FeedbackIcon type={tip.type} />
                 <p className="text-sm text-muted">{tip.tip}</p>
               </div>
           ))}
@@ -87,15 +78,7 @@ const CategoryContent = ({
                   )}
               >
                 <div className="flex flex-row gap-2 items-center">
-                  <img
-                      src={
-                        tip.type === "good"
-                            ? "/icons/check.svg"
-                            : "/icons/warning.svg"
-                      }
-                      alt="score"
-                      className="size-5"
-                  />
+                  <FeedbackIcon type={tip.type} />
                   <p className="text-base font-medium">{tip.tip}</p>
                 </div>
                 <p>{tip.explanation}</p>
