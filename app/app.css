@@ -339,6 +339,11 @@ form {
     width: min(100%, 320px);
     margin-inline: auto;
   }
+  .loading-visual {
+    display: block;
+    width: min(100%, 320px);
+    margin-inline: auto;
+  }
 
   .form-div {
     @apply flex flex-col gap-2 w-full items-start;
@@ -419,8 +424,47 @@ form {
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: scale(0.99);
   }
   to {
     opacity: 1;
+    transform: scale(1);
   }
+}
+
+.primary-button,
+.auth-button,
+.back-button,
+.profile-trigger,
+.profile-menu button,
+.resume-card,
+.delete-resume,
+.uploader-drag-area,
+.accordion-trigger,
+input,
+textarea {
+  transition: background-color 250ms ease, border-color 250ms ease, color 250ms ease, box-shadow 250ms ease;
+}
+
+.profile-menu,
+.accordion-body.is-open {
+  animation: fadeIn 150ms ease both;
+}
+
+.accordion-body[hidden] { display: none; }
+
+.resume-card circle,
+.summary-heading path {
+  transition: stroke-dashoffset 250ms ease;
+}
+
+.auth-button:disabled { cursor: wait; opacity: 0.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .loading-visual .loading-image { width: 64px; }
 }

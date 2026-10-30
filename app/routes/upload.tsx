@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import FileUploader from "~/components/FileUploader";
 import NavBar from "~/components/Navbar";
+import LoadingVisual from "~/components/LoadingVisual";
 import { convertPdfToImage } from "~/lib/pdf2img";
 import { usePuterStore } from "~/lib/puter";
 import { generateUUID } from "~/lib/utils";
@@ -103,7 +104,7 @@ const Upload = () => {
           {isProcessing ? (
             <>
               <h2>{statusText}</h2>
-              <img src="/images/resume-scan.gif" alt="" className="loading-image" />
+              <LoadingVisual src="/images/resume-scan.gif" />
             </>
           ) : (
             <h2>Drop your resume for an ATS score and improvement tips </h2>

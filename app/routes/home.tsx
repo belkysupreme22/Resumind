@@ -1,6 +1,7 @@
 import type { Route } from "./+types/home";
 import ResumeCard from "~/components/ResumeCard";
 import NavBar from "~/components/Navbar";
+import LoadingVisual from "~/components/LoadingVisual";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { usePuterStore } from "~/lib/puter";
@@ -79,7 +80,7 @@ export default function Home() {
         </div>
         {loadingResumes && (
           <div className="flex flex-col items-center justify-center gap-4">
-            <img src="/images/resume-scan-2.gif" className="loading-image" alt="" />
+            <LoadingVisual src="/images/resume-scan-2.gif" />
           </div>
         )}
 
