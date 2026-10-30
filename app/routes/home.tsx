@@ -65,11 +65,11 @@ export default function Home() {
 
 
   return (
-    <main className="bg-[url('/images/bg-main.svg')] bg-cover">
+    <main className="app-page">
       <NavBar />
 
       <section className="main-section">
-        <div className="page-heading py-16">
+        <div className="page-heading">
           <h1>Track Your Applications & Resume Ratings</h1>
           {!loadingResumes && resumes.length === 0 ? (
             <h2>No resumes found. Upload your first resume to get feedback.</h2>
@@ -79,14 +79,14 @@ export default function Home() {
         </div>
         {loadingResumes && (
           <div className="flex flex-col items-center justify-center gap-4">
-            <img src="/images/resume-scan-2.gif" className="w-200px" alt="" />
+            <img src="/images/resume-scan-2.gif" className="loading-image" alt="" />
           </div>
         )}
 
         {!loadingResumes && resumes.length > 0 && (
           <div className="resumes-section">
             {resumes.map((resume) => (
-             <div key={resume.id} className="relative">
+             <div key={resume.id} className="resume-entry">
                 <ResumeCard resume={resume} />
                 <button
                   aria-label="Delete resume"

@@ -29,7 +29,7 @@ const NavBar = () => {
       {/* <Link to="/upload" className="primary-button w-fit">
         Upload Resume
       </Link> */}
-      <div className="flex items-center gap-4">
+      <div className="navbar-actions">
         <Link to="/upload" className="primary-button w-fit">
           Upload Resume
         </Link>
@@ -41,7 +41,7 @@ const NavBar = () => {
             aria-label="Profile menu"
           >
             <FaUserCircle size={28} className="text-inherit" />
-            <span>{auth.user?.username}</span>
+            <span className="profile-name">{auth.user?.username}</span>
             
           </button>
 

@@ -63,7 +63,11 @@ body {
 }
 
 main {
-  @apply min-h-screen pt-10;
+  min-height: 100vh;
+}
+
+.app-page {
+  background: var(--color-canvas);
 }
 h1 {
   font-size: clamp(2.5rem, 6vw, 5rem);
@@ -182,7 +186,8 @@ form {
     background: var(--color-badge-red);
   }
   .resume-nav {
-    @apply flex flex-row justify-between items-center p-4 border-b border-gray-200;
+    @apply flex flex-row justify-between items-center py-6 border-b border-line mx-auto;
+    width: min(1200px, calc(100% - 48px));
   }
   .resume-summary {
     @apply flex flex-row items-center justify-center px-6 py-4;
@@ -204,32 +209,135 @@ form {
     font-size: 16px;
   }
   .main-section {
-    @apply flex flex-col items-center gap-8 pt-12 max-sm:mx-2 mx-15 pb-5;
+    @apply flex flex-col items-center gap-10 mx-auto;
+    width: min(1200px, calc(100% - 48px));
+    padding-block: 64px 80px;
   }
   .page-heading {
-    @apply flex flex-col items-center gap-8 max-w-4xl text-center max-sm:gap-4;
+    @apply flex flex-col items-center gap-6 text-center w-full;
+    max-width: 1040px;
+  }
+  .page-heading > h2 {
+    max-width: 640px;
+    color: var(--color-muted);
+    font-size: 18px;
+    line-height: 1.5;
   }
   .resumes-section {
-    @apply flex flex-wrap max-md:flex-col max-md:gap-4 gap-6 items-start max-md:items-center w-full max-w-[1850px] justify-evenly;
+    @apply grid grid-cols-3 gap-6 items-start w-full;
+  }
+  .resume-entry {
+    position: relative;
+    min-width: 0;
   }
 
   .resume-card {
-    @apply flex flex-col gap-8 h-[560px] w-[350px] lg:w-[430px] xl:w-[490px] bg-raised rounded-panel p-6 border border-line shadow-panel;
+    @apply flex flex-col gap-6 w-full bg-raised rounded-panel p-6 border border-line shadow-panel;
+    min-height: 520px;
   }
   .resume-card:hover {
     border-color: var(--color-brand);
   }
 
   .resume-card-header {
-    @apply flex flex-row gap-2 justify-between min-h-[110px] max-sm:flex-col items-center max-md:justify-center max-md:items-center;
+    @apply flex flex-row gap-4 justify-between items-center pt-4;
+    min-height: 112px;
+  }
+  .resume-card-header h2 {
+    font-size: 24px;
+  }
+  .resume-card-header h3 {
+    font-size: 14px;
+  }
+  .resume-thumbnail {
+    overflow: hidden;
+    background: #ffffff;
+  }
+  .resume-thumbnail img {
+    @apply w-full object-cover object-top rounded-lg;
+    height: 320px;
   }
 
   .feedback-section {
-    @apply flex flex-col gap-8 w-1/2 px-8 max-lg:w-full py-6;
+    @apply flex flex-col gap-6 w-1/2 p-10;
+    min-width: 0;
+  }
+  .review-layout {
+    @apply flex flex-row w-full mx-auto;
+    max-width: 1440px;
+  }
+  .review-heading {
+    font-size: 32px;
+    font-weight: 600;
+  }
+  .resume-preview {
+    @apply items-center justify-center bg-surface;
+    position: sticky;
+    top: 24px;
+    height: calc(100dvh - 120px);
+    border-radius: var(--radius-panel);
+    margin-top: 40px;
+  }
+  .resume-document {
+    max-width: 100%;
+  }
+  .resume-document img {
+    @apply w-full object-contain rounded-lg;
+    max-height: calc(100dvh - 208px);
+  }
+  .summary-heading > :first-child {
+    flex-shrink: 0;
+  }
+  .summary-heading > :last-child {
+    min-width: 0;
   }
 
   .navbar {
-    @apply flex flex-row justify-between items-center border-b border-line bg-canvas p-4 w-full px-10 max-w-[1200px] mx-auto;
+    @apply flex flex-row justify-between items-center gap-6 border-b border-line bg-canvas py-6 mx-auto;
+    width: min(1200px, calc(100% - 48px));
+    min-height: 96px;
+  }
+  .navbar-actions {
+    @apply flex items-center gap-4;
+    min-width: 0;
+  }
+  .profile-name {
+    max-width: 128px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .upload-page .page-heading {
+    max-width: 880px;
+  }
+  .upload-page #upload-form {
+    @apply bg-raised rounded-panel shadow-panel p-8 text-left;
+    margin-top: 16px;
+  }
+  #upload-form > .primary-button {
+    width: 100%;
+  }
+  .auth-page {
+    @apply flex items-center justify-center p-6;
+  }
+  .auth-card {
+    @apply w-full;
+    max-width: 560px;
+  }
+  .auth-content {
+    @apply flex flex-col gap-10 bg-raised rounded-panel p-10;
+  }
+  .auth-content h1 {
+    font-size: clamp(40px, 6vw, 64px);
+  }
+  .auth-content h2 {
+    @apply text-base text-muted;
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+  .loading-image {
+    width: min(100%, 320px);
+    margin-inline: auto;
   }
 
   .form-div {
@@ -247,6 +355,41 @@ form {
   .uploader-selected-file {
     @apply flex items-center justify-between gap-4 p-4 bg-surface rounded-panel text-left;
   }
+}
+
+@media (max-width: 1100px) {
+  .resumes-section { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1023px) {
+  .review-layout { flex-direction: column-reverse; }
+  .feedback-section { width: 100%; padding: 32px 24px; }
+  .resume-preview { position: static; height: auto; margin-top: 0; border-radius: 0; }
+  .resume-document img { max-height: 800px; }
+}
+
+@media (max-width: 640px) {
+  .navbar, .main-section, .resume-nav { width: calc(100% - 32px); }
+  .navbar { gap: 8px; padding-block: 16px; min-height: 80px; }
+  .navbar-actions { gap: 8px; }
+  .navbar .primary-button { padding: 16px; font-size: 12px; }
+  .brand-wordmark { font-size: 20px; }
+  .profile-trigger { border-color: transparent; }
+  .profile-name { display: none; }
+  .main-section { padding-block: 40px; gap: 32px; }
+  .page-heading { gap: 16px; }
+  .page-heading > h2 { font-size: 16px; }
+  .resumes-section { grid-template-columns: minmax(0, 1fr); }
+  .resume-card { padding: 24px; min-height: 0; }
+  .resume-thumbnail img { height: 280px; }
+  .upload-page #upload-form { padding: 24px 16px; }
+  .auth-content { padding: 32px 16px; gap: 32px; }
+  .feedback-section { padding: 24px 16px; }
+  .summary-heading { padding: 24px 16px; flex-wrap: wrap; gap: 16px; }
+  .resume-summary { padding: 16px; }
+  .category > div { flex-wrap: wrap; justify-content: flex-start; }
+  .tip-overview { grid-template-columns: minmax(0, 1fr); }
+  .ats-panel { padding: 24px 16px; }
 }
 
 @utility bg-gradient {
