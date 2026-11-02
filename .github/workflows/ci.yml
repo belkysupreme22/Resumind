@@ -60,6 +60,9 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.PUTER_SUBDOMAIN != ''
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      deployment_url: ${{ steps.puter.outputs.deployment_url }}
+      release_path: ${{ steps.puter.outputs.release_path }}
     environment:
       name: production
       url: ${{ steps.puter.outputs.deployment_url }}
@@ -107,3 +110,47 @@ jobs:
           import { appendFileSync } from 'node:fs';
           appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Deployed ${process.env.GITHUB_SHA}\n\nWebsite: ${process.env.DEPLOYMENT_URL}\n\nRelease folder: ${process.env.RELEASE_PATH}\n\nPrevious release folders are retained for rollback.\n`);
           JS
+
+  release:
+    name: Publish GitHub Release
+    needs: deploy
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: resumind-client-${{ github.sha }}
+          path: deployment-artifact
+      - name: Prepare deployment release notes
+        id: notes
+        env:
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment_url }}
+          RELEASE_PATH: ${{ needs.deploy.outputs.release_path }}
+        run: node scripts/release-notes.mjs "$RUNNER_TEMP/resumind-release.md"
+      - name: Publish the verified deployment and tested build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.notes.outputs.tag }}
+          RELEASE_TITLE: ${{ steps.notes.outputs.title }}
+        run: |
+          if release_draft=$(gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft' 2>/dev/null); then
+            if [ "$release_draft" = 'true' ]; then
+              gh release upload "$RELEASE_TAG" deployment-artifact/resumind-client.tar.gz --clobber
+              gh release edit "$RELEASE_TAG" --draft=false --latest --title "$RELEASE_TITLE" --notes-file "$RUNNER_TEMP/resumind-release.md"
+            fi
+          else
+            gh release create "$RELEASE_TAG" deployment-artifact/resumind-client.tar.gz --target "$GITHUB_SHA" --title "$RELEASE_TITLE" --notes-file "$RUNNER_TEMP/resumind-release.md" --latest
+          fi
+          release_url=$(gh release view "$RELEASE_TAG" --json url --jq '.url')
+          printf 'GitHub Release: %s\n' "$release_url" >> "$GITHUB_STEP_SUMMARY"
