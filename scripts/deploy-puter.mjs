@@ -57,26 +57,28 @@ async function listFiles(directory, prefix = '') {
 
 export async function deployToPuter({ puter, subdomain, releasePath, sourcePath = 'build/client', verify = verifyBuild, log = console.log }) {
   await verify(sourcePath);
-  const perform = async (label, operation) => {
+  const perform = async (label, operation, guidance = 'Check the Puter account and deployment settings.') => {
     log(label);
     try { return await operation(); }
     catch (error) {
       const code = String(errorCode(error) || '').replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 80);
       // SDK error objects may carry request details; never print those or the token.
-      throw new Error(`${label} failed${code ? ` (${code})` : ''}. Check the Puter account and deployment settings.`);
+      throw new Error(`${label} failed${code ? ` (${code})` : ''}. ${guidance}`);
     }
   };
 
   const user = await perform('Validating Puter credentials', () => puter.auth.getUser());
   const directory = resolveReleasePath(releasePath, user?.username);
-  const currentSite = await perform('Checking website binding', async () => {
-    try {
-      const site = await puter.hosting.get(subdomain);
-      if (!site || isMissingResource(site)) return undefined;
-      if (site.error) throw site;
-      return site;
-    } catch (error) { if (isMissingResource(error)) return undefined; throw error; }
-  });
+  log(`Authenticated Puter account: ${JSON.stringify(user.username)}`);
+  const currentSite = await perform('Listing accessible websites', async () => {
+    // Named reads can be forbidden for sites the token cannot access. Use the
+    // account's accessible sites to decide between create and update instead.
+    // The SDK's unbounded list() fetches all pages, so existing sites are not
+    // mistaken for new sites when the account has many deployments.
+    const sites = await puter.hosting.list();
+    if (!Array.isArray(sites)) throw new Error('Puter did not return a website list.');
+    return sites.find((site) => site?.subdomain === subdomain);
+  }, 'Check that PUTER_TOKEN is an account API token with hosting access, from the account that owns the website.');
   const folder = await perform('Preparing release directory', () => ensureDirectory(puter, directory));
   const files = await listFiles(sourcePath);
   if (!files.length) throw new Error('No deployment files were found.');
@@ -94,12 +96,14 @@ export async function deployToPuter({ puter, subdomain, releasePath, sourcePath 
     const failure = results.find((result) => result.status === 'rejected');
     if (failure) throw failure.reason;
   });
-  await perform('Publishing complete release', async () => {
+  await perform(currentSite ? 'Updating website binding' : 'Creating website binding', async () => {
     const site = !currentSite ? await puter.hosting.create(subdomain, directory)
       : currentSite.root_dir?.uid === folder.uid ? currentSite
       : await puter.hosting.update(subdomain, directory);
     if (site?.subdomain !== subdomain) throw new Error('Puter did not confirm the requested website.');
-  });
+  }, currentSite
+    ? 'PUTER_TOKEN must have write access to this website. Check its account and hosting permissions.'
+    : 'The website was not in this token\'s accessible sites. If the name is already registered, use its owner\'s account API token or choose another PUTER_SUBDOMAIN. Also check the account\'s hosting permissions and limits.');
   return { deploymentUrl: `https://${subdomain}.puter.site`, releasePath: directory, deployedFiles: files.length };
 }
 
