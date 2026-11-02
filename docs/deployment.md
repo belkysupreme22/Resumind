@@ -65,7 +65,13 @@ Each deployment uploads to a new directory:
 ~/Sites/resumind/releases/<commit-sha>/<run-id>-<run-attempt>
 ```
 
-Puter's action switches the website binding only after all files upload. Previous
+The repository's `scripts/deploy-puter.mjs` deployer uses the official Puter Node
+SDK at the exact version recorded in `package-lock.json`. It validates the token,
+expands the release folder against the authenticated account's home directory,
+and creates missing parent folders. Puter's `subject_does_not_exist` response is
+handled as a missing resource rather than an authentication failure.
+
+The deployer switches the website binding only after all files upload. Previous
 release folders remain available. Runs on `main` are serialized rather than
 cancelling a deployment while it is uploading.
 
@@ -101,6 +107,6 @@ To make CI a merge requirement, create a GitHub branch ruleset for `main` and
 require the **Tests, types, and build** status check after its first run.
 
 References: [Puter deployment documentation](https://docs.puter.com/deployments/),
-[official deployment action](https://github.com/HeyPuter/puter-subdomain-deploy-action),
+[official Node SDK](https://developer.puter.com/tutorials/puter-js-node-js/),
 [SPA routing configuration](https://docs.puter.com/site-config/), and
 [Puter app publishing](https://developer.puter.com/tutorials/publish-apps-on-puter/).
