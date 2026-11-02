@@ -52,3 +52,17 @@ test('blocks an HTML shell without generated application assets', async (t) => {
   await writeFile(path.join(root, 'index.html'), '<h1>Incomplete build</h1>');
   await assert.rejects(verifyBuild(root), /generated JavaScript and CSS/);
 });
+
+test('accepts React Router inline startup and checks its imported entry file before deployment', async (t) => {
+  const root = await fixture(t);
+  await writeFile(path.join(root, 'index.html'), '<link rel="stylesheet" href="/assets/app.css"><script src="https://js.puter.com/v2/"></script><script type="module" async="">import("/assets/app.js");</script>');
+  assert.equal(await verifyBuild(root), root);
+  await rm(path.join(root, 'assets/app.js'));
+  await assert.rejects(verifyBuild(root), /Missing or empty build file: assets\/app.js/);
+});
+
+test('blocks preload-only HTML before upload using the same entry check as live verification', async (t) => {
+  const root = await fixture(t);
+  await writeFile(path.join(root, 'index.html'), '<link rel="modulepreload" href="/assets/app.js"><link rel="stylesheet" href="/assets/app.css">');
+  await assert.rejects(verifyBuild(root), /no JavaScript entry point/);
+});

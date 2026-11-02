@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { javascriptEntry } from './build-entry.mjs';
 
 export async function verifyDeployment(base, { expectedHtml, fetchPage = fetch, wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), attempts = 7 } = {}) {
   const url = new URL(base);
@@ -8,7 +9,7 @@ export async function verifyDeployment(base, { expectedHtml, fetchPage = fetch, 
     throw new Error('Expected an HTTPS Puter website deployment URL.');
   }
   const html = expectedHtml ?? await readFile('build/client/index.html', 'utf8');
-  const entry = html.match(/<script\b[^>]*\bsrc="(\/assets\/[^"?#]+\.js)"/)?.[1];
+  const entry = javascriptEntry(html);
   if (!entry) throw new Error('The tested build has no JavaScript entry point.');
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {

@@ -52,6 +52,9 @@ not need to upload files in Dev Center again.
 The build output is `build/client`. The workflow verifies its entry-point assets,
 PDF worker, product images, and `.puter_site_config` before packaging it as an
 artifact. The archive and Puter upload both include the hidden routing file.
+Build and live verification share entry-point detection, including React
+Router's inline module bootstrap. A missing bootstrap or entry file is rejected
+before uploading to Puter.
 
 `public/.puter_site_config` is copied into the build and makes `/dashboard`,
 `/upload`, and review deep links serve `index.html` with HTTP 200. Puter may cache
