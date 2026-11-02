@@ -1,11 +1,20 @@
-# Resumind
+<h1 align="center">Resumind</h1>
 
-Resume analysis with feedback tailored to a job title and description. Built with
-React, React Router, TypeScript, and Puter.
+<p align="center">Resume feedback tailored to the role.</p>
 
-[Live application](https://resumindd.puter.site) ·
-[Releases](https://github.com/belkysupreme22/Resumind/releases) ·
-[CI/CD](https://github.com/belkysupreme22/Resumind/actions)
+<p align="center">
+  <a href="https://resumindd.puter.site">Live application</a> ·
+  <a href="https://github.com/belkysupreme22/Resumind/releases">Releases</a> ·
+  <a href="https://github.com/belkysupreme22/Resumind/actions">CI/CD</a>
+</p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public/images/product/dashboard-dark.jpg">
+  <source media="(prefers-color-scheme: light)" srcset="public/images/product/dashboard-light.jpg">
+  <img src="public/images/product/dashboard-light.jpg" alt="Sample Resumind workspace showing resumes, target roles, and review scores." width="960">
+</picture>
+
+<p align="center"><sub>Dashboard preview with sample data.</sub></p>
 
 ## Features
 
