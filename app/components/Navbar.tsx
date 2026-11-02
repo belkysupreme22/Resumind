@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router";
-import { FaUserCircle } from "react-icons/fa";
+import { LogOut, Upload, UserRound } from "lucide-react";
 import { usePuterStore } from "~/lib/puter";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useId, useRef } from "react";
+import Brand from "./Brand";
+import ThemeToggle from "./ThemeToggle";
 
 
 const NavBar = () => {
@@ -9,6 +11,8 @@ const NavBar = () => {
   const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuId = useId();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -16,57 +20,62 @@ const NavBar = () => {
         setShowMenu(false);
       }
     };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (showMenu && event.key === "Escape") {
+        setShowMenu(false);
+        triggerRef.current?.focus();
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
-  }, []);
+  }, [showMenu]);
   return (
     <nav className="navbar">
-      <Link to="/">
-        <p className="text-2xl font-bold text-gradient">RESUMIND</p>
-      </Link>
-      {/* <Link to="/upload" className="primary-button w-fit">
-        Upload Resume
-      </Link> */}
-      <div className="flex items-center gap-4">
-        <Link to="/upload" className="primary-button w-fit">
-          Upload Resume
+      <Brand to="/dashboard" />
+      <div className="navbar-actions">
+        <Link to="/upload" className="primary-button w-fit" aria-label="Upload Resume">
+          <Upload className="size-4 shrink-0" aria-hidden="true" />
+          <span className="upload-action-label">Upload Resume</span>
         </Link>
+        <ThemeToggle />
 
-        <div className="relative" ref={menuRef}>
+        <div className="relative" ref={menuRef} onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setShowMenu(false);
+        }}>
           <button
-            className="flex items-center gap-2 text-xl font-semi-bold relative"
+            ref={triggerRef}
+            type="button"
+            className="profile-trigger"
             onClick={() => setShowMenu((v) => !v)}
             aria-label="Profile menu"
+            aria-expanded={showMenu}
+            aria-controls={showMenu ? menuId : undefined}
           >
-            <FaUserCircle size={28} className="text-inherit" />
-            <span>{auth.user?.username}</span>
+            <UserRound className="size-4 shrink-0" aria-hidden="true" />
+            <span className="profile-name">{auth.user?.username}</span>
             
           </button>
 
             {showMenu && (
               <div
-                className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden"
+                id={menuId}
+                className="profile-menu"
               >
                 <div className="flex flex-col py-2">
                   
                   <button
-                    className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition"
-                    onClick={() => {
-                      auth.signOut();
-                      navigate("/auth");
+                    type="button"
+                    className="profile-logout"
+                    onClick={async () => {
+                      await auth.signOut();
+                      navigate("/", { replace: true });
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
-                    </svg>
+                    <LogOut className="size-4 shrink-0" aria-hidden="true" />
                     Logout
                   </button>
                 </div>

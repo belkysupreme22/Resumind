@@ -1,4 +1,5 @@
 import { cn } from "~/lib/utils";
+import FeedbackIcon from "./FeedbackIcon";
 import {
   Accordion,
   AccordionContent,
@@ -10,19 +11,15 @@ const ScoreBadge = ({ score }: { score: number }) => {
   return (
       <div
           className={cn(
-              "flex flex-row gap-1 items-center px-2 py-0.5 rounded-[96px]",
+              "score-badge",
               score > 69
-                  ? "bg-badge-green"
+                  ? "bg-badge-green text-badge-green-text"
                   : score > 39
-                      ? "bg-badge-yellow"
-                      : "bg-badge-red"
+                      ? "bg-badge-yellow text-badge-yellow-text"
+                      : "bg-badge-red text-badge-red-text"
           )}
       >
-        <img
-            src={score > 69 ? "/icons/check.svg" : "/icons/warning.svg"}
-            alt="score"
-            className="size-4"
-        />
+        <FeedbackIcon type={score > 69 ? "good" : "improve"} />
         <p
             className={cn(
                 "text-sm font-medium",
@@ -47,8 +44,8 @@ const CategoryHeader = ({
   categoryScore: number;
 }) => {
   return (
-      <div className="flex flex-row gap-4 items-center py-2">
-        <p className="text-2xl font-semibold">{title}</p>
+      <div className="flex flex-row flex-wrap gap-4 items-center py-2">
+        <p className="text-lg font-medium">{title}</p>
         <ScoreBadge score={categoryScore} />
       </div>
   );
@@ -61,17 +58,11 @@ const CategoryContent = ({
 }) => {
   return (
       <div className="flex flex-col gap-4 items-center w-full">
-        <div className="bg-gray-50 w-full rounded-lg px-5 py-4 grid grid-cols-2 gap-4">
+        <div className="tip-overview">
           {tips.map((tip, index) => (
               <div className="flex flex-row gap-2 items-center" key={index}>
-                <img
-                    src={
-                      tip.type === "good" ? "/icons/check.svg" : "/icons/warning.svg"
-                    }
-                    alt="score"
-                    className="size-5"
-                />
-                <p className="text-xl text-gray-500 ">{tip.tip}</p>
+                <FeedbackIcon type={tip.type} />
+                <p className="text-sm text-muted">{tip.tip}</p>
               </div>
           ))}
         </div>
@@ -80,23 +71,15 @@ const CategoryContent = ({
               <div
                   key={index + tip.tip}
                   className={cn(
-                      "flex flex-col gap-2 rounded-2xl p-4",
+                      "tip-panel",
                       tip.type === "good"
-                          ? "bg-green-50 border border-green-200 text-green-700"
-                          : "bg-yellow-50 border border-yellow-200 text-yellow-700"
+                          ? "bg-badge-green border border-line text-badge-green-text"
+                          : "bg-badge-yellow border border-line text-badge-yellow-text"
                   )}
               >
                 <div className="flex flex-row gap-2 items-center">
-                  <img
-                      src={
-                        tip.type === "good"
-                            ? "/icons/check.svg"
-                            : "/icons/warning.svg"
-                      }
-                      alt="score"
-                      className="size-5"
-                  />
-                  <p className="text-xl font-semibold">{tip.tip}</p>
+                  <FeedbackIcon type={tip.type} />
+                  <p className="text-base font-medium">{tip.tip}</p>
                 </div>
                 <p>{tip.explanation}</p>
               </div>
@@ -106,10 +89,10 @@ const CategoryContent = ({
   );
 };
 
-const Details = ({ feedback }: { feedback: Feedback }) => {
+const Details = ({ feedback, defaultOpen }: { feedback: Feedback; defaultOpen?: string }) => {
   return (
       <div className="flex flex-col gap-4 w-full">
-        <Accordion>
+        <Accordion defaultOpen={defaultOpen} allowMultiple>
           <AccordionItem id="tone-style">
             <AccordionHeader itemId="tone-style">
               <CategoryHeader

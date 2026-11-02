@@ -1,5 +1,6 @@
 import {
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
@@ -11,6 +12,9 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { usePuterStore } from "./lib/puter";
 import { useEffect } from "react";
+import { initializeTheme, themeBootstrap } from "./lib/theme";
+import Brand from "./components/Brand";
+import ThemeToggle from "./components/ThemeToggle";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -21,7 +25,7 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+    href: "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Mona+Sans:wght@700&display=swap",
   },
 ];
 
@@ -30,16 +34,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     init();
   }, [init]);
+  useEffect(() => initializeTheme(), []);
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
         <Meta />
         <Links />
       </head>
       <body>
-        <script src="https://js.puter.com/v2/"></script>
+        <script async src="https://js.puter.com/v2/"></script>
 
         {children}
         <ScrollRestoration />
@@ -70,14 +76,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
-      )}
+    <main className="app-page">
+      <header className="public-header signin-header page-container"><Brand /><ThemeToggle /></header>
+      <section className="main-section">
+        <div className="notice-panel" role="alert">
+          <h1>{message}</h1>
+          <p>{details}</p>
+          <Link className="primary-button" to="/">Back to home</Link>
+          {stack && <pre className="error-stack"><code>{stack}</code></pre>}
+        </div>
+      </section>
     </main>
   );
 }

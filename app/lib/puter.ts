@@ -85,7 +85,7 @@ interface PuterStore {
   kv: {
     get: (key: string) => Promise<string | null | undefined>;
     set: (key: string, value: string) => Promise<boolean | undefined>;
-    del: (key: string) => Promise<boolean>; 
+    del: (key: string) => Promise<boolean | undefined>;
     delete: (key: string) => Promise<boolean | undefined>;
     list: (
       pattern: string,

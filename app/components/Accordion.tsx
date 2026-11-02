@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useId, useState } from "react";
 import { cn } from "~/lib/utils";
+import { ChevronDown } from "lucide-react";
 
 interface AccordionContextType {
+    idPrefix: string;
     activeItems: string[];
     toggleItem: (id: string) => void;
     isItemActive: (id: string) => boolean;
@@ -33,6 +35,7 @@ export const Accordion: React.FC<AccordionProps> = ({
                                                         allowMultiple = false,
                                                         className = "",
                                                     }) => {
+    const idPrefix = useId();
     const [activeItems, setActiveItems] = useState<string[]>(
         defaultOpen ? [defaultOpen] : []
     );
@@ -53,7 +56,7 @@ export const Accordion: React.FC<AccordionProps> = ({
 
     return (
         <AccordionContext.Provider
-            value={{ activeItems, toggleItem, isItemActive }}
+            value={{ idPrefix, activeItems, toggleItem, isItemActive }}
         >
             <div className={`space-y-2 ${className}`}>{children}</div>
         </AccordionContext.Provider>
@@ -72,7 +75,7 @@ export const AccordionItem: React.FC<AccordionItemProps> = ({
                                                                 className = "",
                                                             }) => {
     return (
-        <div className={`overflow-hidden border-b border-gray-200 ${className}`}>
+        <div className={`accordion-item ${className}`}>
             {children}
         </div>
     );
@@ -93,26 +96,17 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
                                                                     icon,
                                                                     iconPosition = "right",
                                                                 }) => {
-    const { toggleItem, isItemActive } = useAccordion();
+    const { idPrefix, toggleItem, isItemActive } = useAccordion();
     const isActive = isItemActive(itemId);
 
     const defaultIcon = (
-        <svg
-            className={cn("w-5 h-5 transition-transform duration-200", {
+        <ChevronDown
+            aria-hidden="true"
+            className={cn("size-4 shrink-0 transition-transform duration-200", {
                 "rotate-180": isActive,
             })}
-            fill="none"
-            stroke="#98A2B3"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-            />
-        </svg>
+            strokeWidth={2}
+        />
     );
 
     const handleClick = () => {
@@ -121,13 +115,12 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
 
     return (
         <button
+            type="button"
+            id={`${idPrefix}-${itemId}-trigger`}
+            aria-expanded={isActive}
+            aria-controls={`${idPrefix}-${itemId}-content`}
             onClick={handleClick}
-            className={`
-        w-full px-4 py-3 text-left
-        focus:outline-none
-        transition-colors duration-200 flex items-center justify-between cursor-pointer
-        ${className}
-      `}
+            className={`accordion-trigger ${className}`}
         >
             <div className="flex items-center space-x-3">
                 {iconPosition === "left" && (icon || defaultIcon)}
@@ -149,18 +142,18 @@ export const AccordionContent: React.FC<AccordionContentProps> = ({
                                                                       children,
                                                                       className = "",
                                                                   }) => {
-    const { isItemActive } = useAccordion();
+    const { idPrefix, isItemActive } = useAccordion();
     const isActive = isItemActive(itemId);
 
     return (
         <div
-            className={`
-        overflow-hidden transition-all duration-300 ease-in-out
-        ${isActive ? "max-h-fit opacity-100" : "max-h-0 opacity-0"}
-        ${className}
-      `}
+            id={`${idPrefix}-${itemId}-content`}
+            role="region"
+            aria-labelledby={`${idPrefix}-${itemId}-trigger`}
+            hidden={!isActive}
+            className={`accordion-body ${isActive ? "is-open" : ""} ${className}`}
         >
-            <div className="px-4 py-3 ">{children}</div>
+            <div className="accordion-content">{children}</div>
         </div>
     );
 };
