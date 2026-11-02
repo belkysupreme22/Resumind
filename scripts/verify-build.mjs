@@ -1,6 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { javascriptEntry } from './build-entry.mjs';
 
 export async function verifyBuild(directory = 'build/client') {
   const root = path.resolve(directory);
@@ -19,9 +20,12 @@ export async function verifyBuild(directory = 'build/client') {
 
   const html = await readFile(path.join(root, 'index.html'), 'utf8');
   const assets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"?#]+)(?:[?#][^"]*)?"/g)].map((match) => match[1].slice(1));
+  const entry = javascriptEntry(html);
+  if (entry) assets.push(entry.slice(1));
   if (!assets.some((asset) => asset.endsWith('.js')) || !assets.some((asset) => asset.endsWith('.css'))) {
     throw new Error('The build must reference generated JavaScript and CSS.');
   }
+  if (!entry) throw new Error('The tested build has no JavaScript entry point.');
   for (const asset of new Set(assets)) await requireFile(asset);
   for (const theme of ['light', 'dark']) await requireFile(`images/product/dashboard-${theme}.jpg`);
   return root;

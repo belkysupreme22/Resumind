@@ -11,6 +11,14 @@ const environment = () => ({
   GITHUB_RUN_ATTEMPT: '1',
 });
 const expectedHtml = '<script type="module" src="/assets/entry-current.js"></script>';
+const routerHtml = (hash) => `<!DOCTYPE html><html><head>
+  <script async="" src="https://js.puter.com/v2/"></script>
+  <link rel="modulepreload" href="/assets/manifest-current.js"/>
+  <link rel="modulepreload" href="/assets/entry.client-${hash}.js"/>
+  </head><body><script type="module" async="">import "/assets/manifest-current.js";
+  import * as route0 from "/assets/root-current.js";
+  window.__reactRouterRouteModules = {"root":route0};
+  import("/assets/entry.client-${hash}.js");</script></body></html>`;
 
 test('accepts a website label, hostname, or root HTTPS URL', () => {
   for (const input of ['resumind-example', 'resumind-example.puter.site', 'https://resumind-example.puter.site/']) {
@@ -42,6 +50,31 @@ test('checks root, upload, and dashboard against the tested entry point', async 
     return new Response(expectedHtml, { status: 200 });
   } });
   assert.deepEqual(routes, ['/', '/upload', '/dashboard']);
+});
+
+test('verifies the React Router SPA inline bootstrap used by the production build', async () => {
+  const routes = [];
+  await verifyDeployment('https://resumind-example.puter.site', {
+    expectedHtml: routerHtml('new'),
+    fetchPage: async (url) => { routes.push(url.pathname); return new Response(routerHtml('new')); },
+  });
+  assert.deepEqual(routes, ['/', '/upload', '/dashboard']);
+});
+
+test('rejects an older React Router entry even when other asset references match', async () => {
+  await assert.rejects(verifyDeployment('https://resumind-example.puter.site', {
+    expectedHtml: routerHtml('new'), attempts: 1,
+    fetchPage: async () => new Response(routerHtml('old')),
+  }), /tested build/);
+});
+
+test('preloads and an external SDK are not accepted as the application bootstrap', async () => {
+  let requested = false;
+  await assert.rejects(verifyDeployment('https://resumind-example.puter.site', {
+    expectedHtml: '<script src="https://js.puter.com/v2/"></script><link rel="modulepreload" href="/assets/entry.client-current.js"/>',
+    fetchPage: async () => { requested = true; return new Response(''); },
+  }), /no JavaScript entry point/);
+  assert.equal(requested, false);
 });
 
 test('waits for routing config propagation and then accepts the deployed build', async () => {
