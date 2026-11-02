@@ -44,7 +44,7 @@ const CategoryHeader = ({
   categoryScore: number;
 }) => {
   return (
-      <div className="flex flex-row gap-4 items-center py-2">
+      <div className="flex flex-row flex-wrap gap-4 items-center py-2">
         <p className="text-lg font-medium">{title}</p>
         <ScoreBadge score={categoryScore} />
       </div>
@@ -73,8 +73,8 @@ const CategoryContent = ({
                   className={cn(
                       "tip-panel",
                       tip.type === "good"
-                          ? "bg-green-50 border border-green-200 text-green-700"
-                          : "bg-yellow-50 border border-yellow-200 text-yellow-700"
+                          ? "bg-badge-green border border-line text-badge-green-text"
+                          : "bg-badge-yellow border border-line text-badge-yellow-text"
                   )}
               >
                 <div className="flex flex-row gap-2 items-center">

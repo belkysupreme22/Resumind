@@ -5,6 +5,8 @@
   .primary-button.button-emphasis:hover, .auth-button.button-emphasis:hover { background: color-mix(in srgb, var(--color-ink) 85%, var(--color-canvas)); }
   .text-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 16px; border-radius: 6px; color: var(--color-muted); font-size: 14px; font-weight: 500; }
   .text-button:hover { background: var(--color-surface); color: var(--color-ink); }
+  .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 6px; color: var(--color-ink); cursor: pointer; }
+  .icon-button:hover { background: var(--color-surface); }
   .product-preview { margin: 0; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-raised); box-shadow: var(--shadow-float); overflow: hidden; text-align: left; }
   .preview-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; padding: 16px 24px; border-bottom: 1px solid var(--color-line); }
   .preview-toolbar-title { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
