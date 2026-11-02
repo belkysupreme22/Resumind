@@ -46,6 +46,14 @@ export const readSavedReview = (value: string): Resume => {
 };
 
 export type AnalysisStage = "preparing" | "reviewing" | "saving";
+export type JobContextErrors = Partial<Record<"jobTitle" | "jobDescription", string>>;
+export const validateJobContext = (context: { jobTitle: string; jobDescription: string }): JobContextErrors => {
+  const errors: JobContextErrors = {};
+  if (!context.jobTitle.trim()) errors.jobTitle = "Enter the job title you’re applying for.";
+  if (!context.jobDescription.trim()) errors.jobDescription = "Add the job description so feedback can match the role’s requirements.";
+  return errors;
+};
+
 export interface AnalysisDraft {
   id: string;
   imageFile?: File;
@@ -78,6 +86,8 @@ export const analyzeResume = async (
   services: AnalysisServices,
   onStage: (stage: AnalysisStage) => void,
 ): Promise<string> => {
+  const contextErrors = validateJobContext(input);
+  if (Object.keys(contextErrors).length) throw new Error(Object.values(contextErrors).join(" "));
   if (!draft.resumePath || !draft.imagePath) {
     onStage("preparing");
     if (!draft.imagePath && !draft.imageFile) {

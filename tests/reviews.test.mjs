@@ -6,7 +6,7 @@ import { transformWithEsbuild } from 'vite';
 // Use the project's TypeScript transformer; no browser or cloud account required.
 const source = await readFile(new URL('../app/lib/reviews.ts', import.meta.url), 'utf8');
 const { code } = await transformWithEsbuild(source, 'reviews.ts', { loader: 'ts', format: 'esm' });
-const { analyzeResume, isFeedback, parseFeedback, readSavedReview } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+const { analyzeResume, isFeedback, parseFeedback, readSavedReview, validateJobContext } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 
 const feedback = () => ({
   overallScore: 85,
@@ -16,7 +16,7 @@ const feedback = () => ({
 const response = () => ({ message: { content: JSON.stringify(feedback()) } });
 const fixture = () => {
   const calls = { convert: 0, upload: 0, feedback: 0, records: [], stages: [] };
-  const input = { file: { name: 'resume.pdf', size: 100, type: 'application/pdf' }, companyName: ' Northstar ', jobTitle: ' Developer ', jobDescription: '', prompt: 'Review this resume' };
+  const input = { file: { name: 'resume.pdf', size: 100, type: 'application/pdf' }, companyName: ' Northstar ', jobTitle: ' Developer ', jobDescription: ' Build accessible interfaces with React and TypeScript. ', prompt: 'Review this resume' };
   const services = {
     convert: async () => { calls.convert++; return { name: 'resume.png' }; },
     upload: async () => ({ path: `file-${++calls.upload}` }),
@@ -37,6 +37,7 @@ test('saves a complete review only after validated analysis, with trimmed contex
   assert.equal(record.key, 'resume:review-123');
   assert.equal(record.data.companyName, 'Northstar');
   assert.equal(record.data.jobTitle, 'Developer');
+  assert.equal(record.data.jobDescription, 'Build accessible interfaces with React and TypeScript.');
   assert.deepEqual(record.data.feedback, feedback());
   assert.equal(readSavedReview(JSON.stringify(record.data)).id, 'review-123');
   assert.equal(draft.saved, true);
@@ -126,4 +127,33 @@ test('rejects invalid scores, missing categories, and malformed tips', () => {
   assert.equal(isFeedback(missingExplanation), false);
   assert.throws(() => readSavedReview(JSON.stringify({ id: 'old-partial', feedback: '' })), /incomplete/);
   assert.throws(() => readSavedReview('{broken'));
+});
+
+test('requires a job title and description, including whitespace-only values', () => {
+  for (const value of ['', '   ', '\n\t']) {
+    assert.ok(validateJobContext({ jobTitle: value, jobDescription: 'Role requirements' }).jobTitle);
+    assert.ok(validateJobContext({ jobTitle: 'Developer', jobDescription: value }).jobDescription);
+  }
+  assert.deepEqual(validateJobContext({ jobTitle: 'Developer', jobDescription: 'Role requirements' }), {});
+});
+
+test('missing job context is blocked before conversion, upload, AI, or saving', async () => {
+  for (const field of ['jobTitle', 'jobDescription']) {
+    const { input, calls, run } = fixture();
+    input[field] = '   ';
+    await assert.rejects(run(), field === 'jobTitle' ? /Enter the job title/ : /Add the job description/);
+    assert.equal(calls.convert, 0);
+    assert.equal(calls.upload, 0);
+    assert.equal(calls.feedback, 0);
+    assert.equal(calls.records.length, 0);
+    assert.deepEqual(calls.stages, []);
+  }
+});
+
+test('company remains optional when the role and requirements are provided', async () => {
+  const { input, calls, run } = fixture();
+  input.companyName = '';
+  await run();
+  assert.equal(calls.records[0].data.companyName, '');
+  assert.equal(calls.feedback, 1);
 });

@@ -7,7 +7,7 @@ import NavBar from "~/components/Navbar";
 import { convertPdfToImage } from "~/lib/pdf2img";
 import { usePuterStore } from "~/lib/puter";
 import { formatSize, generateUUID } from "~/lib/utils";
-import { analyzeResume, type AnalysisDraft, type AnalysisStage } from "~/lib/reviews";
+import { analyzeResume, validateJobContext, type AnalysisDraft, type AnalysisStage, type JobContextErrors } from "~/lib/reviews";
 
 const steps = ["Resume", "Job context", "Review"];
 const stages: { key: AnalysisStage; title: string; description: string }[] = [
@@ -27,6 +27,10 @@ const Upload = () => {
   const [processing, setProcessing] = useState(false);
   const [stage, setStage] = useState<AnalysisStage>("preparing");
   const [error, setError] = useState("");
+  const [contextErrors, setContextErrors] = useState<JobContextErrors>({});
+  const jobTitleInput = useRef<HTMLInputElement>(null);
+  const jobDescriptionInput = useRef<HTMLTextAreaElement>(null);
+  const focusInvalidContext = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const errorPanel = useRef<HTMLDivElement>(null);
   const previousStep = useRef(0);
@@ -43,6 +47,22 @@ const Upload = () => {
     previousStep.current = step;
   }, [step]);
   useEffect(() => { if (error) errorPanel.current?.focus(); }, [error]);
+  useEffect(() => {
+    if (step === 1 && focusInvalidContext.current) {
+      focusInvalidContext.current = false;
+      if (contextErrors.jobTitle) jobTitleInput.current?.focus();
+      else if (contextErrors.jobDescription) jobDescriptionInput.current?.focus();
+    }
+  }, [step, contextErrors]);
+
+  const checkContext = () => {
+    const errors = validateJobContext(context);
+    setContextErrors(errors);
+    if (!Object.keys(errors).length) return true;
+    focusInvalidContext.current = true;
+    setStep(1);
+    return false;
+  };
 
   const selectFile = (next: File | null) => {
     if (next !== file) {
@@ -59,12 +79,16 @@ const Upload = () => {
 
   const updateContext = (key: keyof typeof context, value: string) => {
     setContext((current) => ({ ...current, [key]: value }));
+    if (key !== "companyName") {
+      setContextErrors((current) => current[key] ? { ...current, [key]: validateJobContext({ ...context, [key]: value })[key] } : current);
+    }
     if (draft.current) delete draft.current.feedback;
     setError("");
   };
 
   const startAnalysis = async () => {
     if (!file || busy.current) return;
+    if (!checkContext()) return;
     busy.current = true;
     setProcessing(true);
     setError("");
@@ -94,6 +118,7 @@ const Upload = () => {
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!file || processing) return;
+    if (step > 0 && !checkContext()) return;
     if (step < 2) setStep(step + 1);
     else void startAnalysis();
   };
@@ -103,7 +128,7 @@ const Upload = () => {
     <main className="app-page upload-page">
       <NavBar />
       <section className="main-section wizard-section">
-        <div className="workspace-heading"><h1>Analyze your resume</h1><p>Start with a PDF. Add a role for more focused feedback.</p></div>
+        <div className="workspace-heading"><h1>Analyze your resume</h1><p>Upload your resume and add the role’s requirements for targeted feedback.</p></div>
         <div className="wizard-panel">
           {processing ? (
             <div className="analysis-progress" role="status" aria-live="polite" aria-atomic="true">
@@ -125,21 +150,19 @@ const Upload = () => {
                   <span className="wizard-step-number">{step > index ? <Check size={16} aria-hidden="true" /> : index + 1}</span><span>{label}</span>
                 </li>)}
               </ol>
-              <form className="wizard-form" onSubmit={submit}>
-                <div className="wizard-step-heading"><span>Step {step + 1} of 3</span><h2 ref={heading} tabIndex={-1}>{["Choose your resume", "Add job context", "Review your details"][step]}</h2><p>{["Upload a PDF of your resume to get started.", "Optional. Leave these blank for general resume feedback.", "Check the file and context before starting your analysis."][step]}</p></div>
+              <form className="wizard-form" onSubmit={submit} noValidate>
+                <div className="wizard-step-heading"><span>Step {step + 1} of 3</span><h2 ref={heading} tabIndex={-1}>{["Choose your resume", "Add job context", "Review your details"][step]}</h2><p>{["Upload a PDF of your resume to get started.", "Add the job title and description so feedback matches the role.", "Check the file and context before starting your analysis."][step]}</p></div>
                 {step === 0 && <FileUploader file={file} onFileSelect={selectFile} />}
                 {step === 1 && <div className="wizard-fields">
-                  <div className="form-div"><label htmlFor="company-name">Company</label><input id="company-name" name="company-name" value={context.companyName} onChange={(event) => updateContext("companyName", event.target.value)} placeholder="e.g. Northstar" /></div>
-                  <div className="form-div"><label htmlFor="job-title">Job title</label><input id="job-title" name="job-title" value={context.jobTitle} onChange={(event) => updateContext("jobTitle", event.target.value)} placeholder="e.g. Frontend Developer" /></div>
-                  <div className="form-div"><label htmlFor="job-description">Job description</label><textarea id="job-description" name="job-description" rows={6} value={context.jobDescription} onChange={(event) => updateContext("jobDescription", event.target.value)} placeholder="Paste the job description" /></div>
+                  <div className="form-div"><label htmlFor="job-title">Job title <span className="field-requirement">Required</span></label><input ref={jobTitleInput} id="job-title" name="job-title" required value={context.jobTitle} aria-invalid={Boolean(contextErrors.jobTitle)} aria-describedby={contextErrors.jobTitle ? "job-title-error" : undefined} onChange={(event) => updateContext("jobTitle", event.target.value)} placeholder="e.g. Frontend Developer" />{contextErrors.jobTitle && <p className="field-validation-error" id="job-title-error">{contextErrors.jobTitle}</p>}</div>
+                  <div className="form-div"><label htmlFor="company-name">Company <span className="field-requirement">Optional</span></label><input id="company-name" name="company-name" value={context.companyName} onChange={(event) => updateContext("companyName", event.target.value)} placeholder="e.g. Northstar" /></div>
+                  <div className="form-div"><label htmlFor="job-description">Job description <span className="field-requirement">Required</span></label><textarea ref={jobDescriptionInput} id="job-description" name="job-description" rows={6} required value={context.jobDescription} aria-invalid={Boolean(contextErrors.jobDescription)} aria-describedby={contextErrors.jobDescription ? "job-description-error" : undefined} onChange={(event) => updateContext("jobDescription", event.target.value)} placeholder="Paste the job description" />{contextErrors.jobDescription && <p className="field-validation-error" id="job-description-error">{contextErrors.jobDescription}</p>}</div>
                 </div>}
                 {step === 2 && <div className="wizard-review">
                   <div className="wizard-review-group"><div className="wizard-review-label"><h3>Resume</h3><button className="text-button" type="button" onClick={() => setStep(0)}>Change file</button></div><div className="wizard-file-summary"><FileText size={24} aria-hidden="true" /><div><p>{file?.name}</p><span>{file && formatSize(file.size)}</span></div></div></div>
                   <div className="wizard-review-group"><div className="wizard-review-label"><h3>Job context</h3><button className="text-button" type="button" onClick={() => setStep(1)}>Edit context</button></div>
-                    {context.companyName.trim() || context.jobTitle.trim() || context.jobDescription.trim() ? <>
                       <dl className="wizard-context-summary">{context.companyName.trim() && <div><dt>Company</dt><dd>{context.companyName}</dd></div>}{context.jobTitle.trim() && <div><dt>Role</dt><dd>{context.jobTitle}</dd></div>}</dl>
                       {context.jobDescription.trim() && <details className="wizard-job-description"><summary>Read job description</summary><p>{context.jobDescription}</p></details>}
-                    </> : <p className="text-muted">General resume review. You haven’t added a specific role.</p>}
                   </div>
                   <p className="wizard-score-note">You’ll receive an overall score, ATS feedback, and suggestions for tone, content, structure, and skills. Scores are AI estimates.</p>
                 </div>}
