@@ -11,6 +11,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { usePuterStore } from "./lib/puter";
 import { useEffect } from "react";
+import { initializeTheme, themeBootstrap } from "./lib/theme";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -30,16 +31,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     init();
   }, [init]);
+  useEffect(() => initializeTheme(), []);
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
         <Meta />
         <Links />
       </head>
       <body>
-        <script src="https://js.puter.com/v2/"></script>
+        <script async src="https://js.puter.com/v2/"></script>
 
         {children}
         <ScrollRestoration />

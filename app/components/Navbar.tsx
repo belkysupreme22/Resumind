@@ -2,6 +2,8 @@ import { Link, useNavigate } from "react-router";
 import { LogOut, Upload, UserRound } from "lucide-react";
 import { usePuterStore } from "~/lib/puter";
 import { useState, useEffect, useId, useRef } from "react";
+import Brand from "./Brand";
+import ThemeToggle from "./ThemeToggle";
 
 
 const NavBar = () => {
@@ -33,17 +35,13 @@ const NavBar = () => {
   }, [showMenu]);
   return (
     <nav className="navbar">
-      <Link to="/">
-        <p className="brand-wordmark text-2xl font-bold text-gradient">RESUMIND</p>
-      </Link>
-      {/* <Link to="/upload" className="primary-button w-fit">
-        Upload Resume
-      </Link> */}
+      <Brand to="/dashboard" />
       <div className="navbar-actions">
-        <Link to="/upload" className="primary-button w-fit">
+        <Link to="/upload" className="primary-button w-fit" aria-label="Upload Resume">
           <Upload className="size-4 shrink-0" aria-hidden="true" />
-          Upload Resume
+          <span className="upload-action-label">Upload Resume</span>
         </Link>
+        <ThemeToggle />
 
         <div className="relative" ref={menuRef} onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setShowMenu(false);
@@ -72,9 +70,9 @@ const NavBar = () => {
                   <button
                     type="button"
                     className="profile-logout"
-                    onClick={() => {
-                      auth.signOut();
-                      navigate("/auth");
+                    onClick={async () => {
+                      await auth.signOut();
+                      navigate("/", { replace: true });
                     }}
                   >
                     <LogOut className="size-4 shrink-0" aria-hidden="true" />

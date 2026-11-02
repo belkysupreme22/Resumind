@@ -1,9 +1,9 @@
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/dashboard";
 import ResumeCard from "~/components/ResumeCard";
 import NavBar from "~/components/Navbar";
 import LoadingVisual from "~/components/LoadingVisual";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { usePuterStore } from "~/lib/puter";
 import { Trash2, Upload } from "lucide-react";
 
@@ -17,18 +17,11 @@ export function meta({}: Route.MetaArgs) {
 
 type ResumeWithKey = Resume & { kvKey: string };
 
-export default function Home() {
-  const { auth, kv, fs } = usePuterStore();
-  const navigate = useNavigate();
+export default function Dashboard() {
+  const { kv, fs } = usePuterStore();
   const [resumes, setResumes] = useState<ResumeWithKey[]>([]);
   const [loadingResumes, setLoadingResumes] = useState(false);
    const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!auth.isAuthenticated) {
-      navigate("/auth?next=/");
-    }
-  }, [auth.isAuthenticated]);
 
   useEffect(() => {
     const loadResumes = async () => {

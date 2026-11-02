@@ -1,56 +1,79 @@
-import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { ArrowLeft, ArrowRight, CircleAlert, FileSearch, History, LogIn, ScanText, ShieldCheck, Target } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
+import Brand from "~/components/Brand";
+import ThemeToggle from "~/components/ThemeToggle";
 import { usePuterStore } from "~/lib/puter";
 
 export const meta = () => [
-  { title: "Resumind - Auth" },
-  { name: "description", content: "Log into your account" },
+  { title: "Resumind — Log In" },
+  { name: "description", content: "Sign in to your resume workspace with Puter." },
 ];
 
 const Auth = () => {
-  const { isLoading, auth } = usePuterStore();
+  const { isLoading, puterReady, auth, error, clearError } = usePuterStore();
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const location = useLocation();
-  const next = location.search.split('next=')[1];
   const navigate = useNavigate();
+  const requestedNext = new URLSearchParams(location.search).get("next") || "/dashboard";
+  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !requestedNext.includes("\\") && !/^\/auth(?:[/?#]|$)/.test(requestedNext)
+    ? requestedNext
+    : "/dashboard";
+  const reconnect = !puterReady && Boolean(error);
+  const waiting = isLoading || !puterReady || isSigningIn;
 
-  
   useEffect(() => {
-    if (auth.isAuthenticated) {
-      navigate(next);
+    if (auth.isAuthenticated) navigate(next, { replace: true });
+  }, [auth.isAuthenticated, next, navigate]);
+
+  const handleSignIn = async () => {
+    clearError();
+    setIsSigningIn(true);
+    try {
+      await auth.signIn();
+    } finally {
+      setIsSigningIn(false);
     }
-  }, [auth.isAuthenticated, next]);
-
-
+  };
 
   return (
-    <main className="app-page auth-page">
-      <div className="auth-card gradient-border">
-        <section className="auth-content">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1>Welcome</h1>
-            <h2>Log In to Continue Your Job Journey</h2>
-          </div>
-          <div>
-            {isLoading ? (
-              <button className="auth-button" disabled>
-                <p>Signing you in...</p>
-              </button>
-            ) : (
-              <>
-                {auth.isAuthenticated ? (
-                  <button className="auth-button" onClick={auth.signOut}>
-                    <p>Log Out</p>
-                  </button>
-                ) : (
-                  <button className="auth-button" onClick={auth.signIn}>
-                    <p>Log In</p>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
+    <main className="app-page signin-page">
+      <header className="public-header signin-header page-container">
+        <Link className="text-button" to="/"><ArrowLeft size={16} aria-hidden="true" /> Back to home</Link>
+        <ThemeToggle />
+      </header>
+      <div className="signin-layout page-container">
+        <section className="signin-brand-panel" aria-label="Resumind">
+          <ScanText className="signin-brand-symbol" size={88} strokeWidth={1.25} aria-hidden="true" />
+          <Brand />
+          <p>A clearer next step.</p>
+        </section>
+        <section className="signin-card" aria-labelledby="welcome-title">
+          <h1 id="welcome-title">Welcome back</h1>
+          <p className="signin-description">Sign in to your Resumind workspace.</p>
+          <button
+            type="button"
+            className="auth-button button-emphasis"
+            disabled={waiting && !reconnect}
+            aria-busy={waiting && !reconnect}
+            onClick={reconnect ? () => window.location.reload() : handleSignIn}
+          >
+            <LogIn size={16} aria-hidden="true" />
+            {reconnect ? "Try again" : isSigningIn ? "Signing you in…" : waiting ? "Connecting to Puter…" : "Continue with Puter"}
+            {!waiting && <ArrowRight size={16} aria-hidden="true" />}
+          </button>
+          {error && <p className="signin-error" role="alert"><CircleAlert size={16} aria-hidden="true" /> {reconnect ? "We couldn’t connect to Puter. Please try again." : error}</p>}
+          <div className="signin-divider"><span>Your next move starts here</span></div>
+          <ul className="signin-benefits">
+            <li><FileSearch size={16} aria-hidden="true" /><span>Understand your ATS fit.</span></li>
+            <li><Target size={16} aria-hidden="true" /><span>Keep the role in view.</span></li>
+            <li><History size={16} aria-hidden="true" /><span>Return to your saved reviews.</span></li>
+          </ul>
+          <div className="signin-provider-note"><ShieldCheck size={16} aria-hidden="true" /><p>Puter handles your sign-in. Resumind never asks for your password.</p></div>
+          <div className="signin-card-footer"><p>New here? You can create a Puter account in the sign-in window.</p><Link to="/#sample-review">See a sample review <ArrowRight size={14} aria-hidden="true" /></Link></div>
         </section>
       </div>
+      <footer className="signin-footer page-container"><span>Made for your next move.</span><Link to="/">Explore Resumind <ArrowRight size={14} aria-hidden="true" /></Link></footer>
     </main>
   );
 };

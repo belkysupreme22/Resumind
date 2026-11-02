@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import { usePuterStore } from "~/lib/puter";
 import { Trash2 } from "lucide-react";
 
 const WipeApp = () => {
-    const { auth, isLoading, error, clearError, fs, ai, kv } = usePuterStore();
-    const navigate = useNavigate();
+    const { auth, error, fs, kv } = usePuterStore();
     const [files, setFiles] = useState<FSItem[]>([]);
 
     const loadFiles = async () => {
@@ -17,11 +15,6 @@ const WipeApp = () => {
         loadFiles();
     }, []);
 
-    useEffect(() => {
-        if (!isLoading && !auth.isAuthenticated) {
-            navigate("/auth?next=/wipe");
-        }
-    }, [isLoading]);
 
     const handleDelete = async () => {
         files.forEach(async (file) => {
@@ -30,10 +23,6 @@ const WipeApp = () => {
         await kv.flush();
         loadFiles();
     };
-
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
 
     if (error) {
         return <div>Error {error}</div>;
