@@ -229,7 +229,7 @@ form {
   .delete-resume:hover svg { color: var(--color-badge-red-text); }
   .resume-nav {
     @apply flex flex-row justify-between items-center py-6 border-b border-line mx-auto;
-    width: min(1200px, calc(100% - 48px));
+    width: min(1200px, calc(100% - 64px));
   }
   .resume-summary {
     @apply flex flex-row items-center justify-center px-6 py-4;
@@ -243,7 +243,7 @@ form {
   .back-button {
     @apply inline-flex flex-row items-center gap-2 border border-transparent bg-transparent rounded-panel p-2 text-ink;
     min-height: 40px;
-    font-size: 16px;
+    font-size: 14px;
   }
   .back-button:hover {
     background: var(--color-surface);
@@ -254,7 +254,7 @@ form {
   }
   .main-section {
     @apply flex flex-col items-center gap-10 mx-auto;
-    width: min(1200px, calc(100% - 48px));
+    width: min(1200px, calc(100% - 64px));
     padding-block: 64px 80px;
   }
   .page-heading {
@@ -290,6 +290,8 @@ form {
   .resume-card-header h2 {
     font-size: 24px;
   }
+  .resume-card-header > :first-child { min-width: 0; overflow-wrap: anywhere; }
+  .accordion-trigger > div, .accordion-trigger > div > div { min-width: 0; }
   .resume-card-header h3 {
     font-size: 14px;
   }
@@ -338,7 +340,7 @@ form {
 
   .navbar {
     @apply flex flex-row justify-between items-center gap-6 border-b border-line bg-canvas py-6 mx-auto;
-    width: min(1200px, calc(100% - 48px));
+    width: min(1200px, calc(100% - 64px));
     min-height: 96px;
   }
   .navbar-actions {
@@ -351,6 +353,15 @@ form {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .utility-heading { align-self: flex-start; text-align: left; }
+  .utility-heading h1 { font-size: clamp(32px, 4vw, 48px); }
+  .utility-content { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; width: 100%; max-width: 800px; align-self: flex-start; }
+  .utility-content h2 { font-size: 20px; font-weight: 500; }
+  .utility-file-list { display: flex; flex-direction: column; gap: 16px; width: 100%; padding: 24px; overflow-wrap: anywhere; }
+  .notice-panel { width: 100%; padding: 24px; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-raised); }
+  .notice-panel h1 { font-size: clamp(32px, 4vw, 48px); }
+  .notice-panel p { margin-block: 16px 24px; color: var(--color-muted); }
+  .error-stack { margin-top: 24px; width: 100%; overflow: auto; font-size: 12px; text-align: left; }
   .upload-page .page-heading {
     max-width: 880px;
   }
@@ -361,24 +372,6 @@ form {
   #upload-form > .primary-button {
     width: 100%;
     min-height: 48px;
-  }
-  .auth-page {
-    @apply flex items-center justify-center p-6;
-  }
-  .auth-card {
-    @apply w-full;
-    max-width: 560px;
-  }
-  .auth-content {
-    @apply flex flex-col gap-10 bg-raised rounded-panel p-10;
-  }
-  .auth-content h1 {
-    font-size: clamp(40px, 6vw, 64px);
-  }
-  .auth-content h2 {
-    @apply text-base text-muted;
-    line-height: 1.5;
-    margin-top: 8px;
   }
   .loading-image {
     width: min(100%, 320px);
@@ -441,7 +434,10 @@ button:disabled { cursor: not-allowed; }
   .navbar, .main-section, .resume-nav { width: calc(100% - 32px); }
   .navbar { gap: 8px; padding-block: 16px; min-height: 80px; }
   .navbar-actions { gap: 8px; }
-  .navbar .primary-button { padding: 8px 16px; min-height: 44px; }
+  .navbar .primary-button { width: 44px; padding: 8px; min-height: 44px; }
+  .navbar .upload-action-label { display: none; }
+  .navbar .profile-trigger { width: 44px; min-height: 44px; padding: 8px; }
+  .theme-summary { width: 44px; height: 44px; }
   .brand-wordmark { font-size: 20px; }
   .profile-trigger { border-color: transparent; }
   .profile-name { display: none; }
@@ -452,7 +448,7 @@ button:disabled { cursor: not-allowed; }
   .resume-card { padding: 24px; min-height: 0; }
   .resume-thumbnail img { height: 280px; }
   .upload-page #upload-form { padding: 24px 16px; }
-  .auth-content { padding: 32px 16px; gap: 32px; }
+  input, textarea { font-size: 16px; }
   .feedback-section { padding: 24px 16px; }
   .summary-heading { padding: 24px 16px; flex-wrap: wrap; gap: 16px; }
   .resume-summary { padding: 16px; }

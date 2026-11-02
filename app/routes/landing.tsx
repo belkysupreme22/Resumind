@@ -1,9 +1,8 @@
 import { ArrowRight, Check, FileSearch, FileText, History, ScanText, Target } from "lucide-react";
 import { Link } from "react-router";
-import Brand from "~/components/Brand";
 import BackToTop from "~/components/BackToTop";
 import LandingPreview from "~/components/LandingPreview";
-import ThemeToggle from "~/components/ThemeToggle";
+import PublicNavbar from "~/components/PublicNavbar";
 import ProductScreenshot from "~/components/ProductScreenshot";
 import { usePuterStore } from "~/lib/puter";
 
@@ -31,19 +30,7 @@ const Landing = () => {
   return (
     <main className="app-page landing-page" id="top">
       <a className="skip-link" href="#main-content">Skip to content</a>
-      <header className="public-header page-container">
-        <Brand />
-        <nav className="public-links" aria-label="Main navigation">
-          <a href="#sample-review" className="demo-nav-link">Demo</a>
-          <a href="#features">What you get</a>
-          <a href="#how-it-works">How it works</a>
-        </nav>
-        <div className="public-actions">
-          <Link className="text-button" to={isAuthenticated ? "/dashboard" : "/auth"}>{isAuthenticated ? "My reviews" : "Log In"}</Link>
-          <Link className="primary-button" to={analyzePath}>Get started <ArrowRight size={16} aria-hidden="true" /></Link>
-          <ThemeToggle />
-        </div>
-      </header>
+      <PublicNavbar isAuthenticated={isAuthenticated} />
 
       <section className="landing-hero page-container" id="main-content" aria-labelledby="hero-title" tabIndex={-1}>
         <span className="hero-label"><ScanText size={16} aria-hidden="true" /> A fresh perspective on your resume</span>

@@ -1,6 +1,7 @@
 import { ArrowLeft, ScanText } from "lucide-react";
 import { Link, Navigate, Outlet, useLocation } from "react-router";
 import Brand from "~/components/Brand";
+import ThemeToggle from "~/components/ThemeToggle";
 import { usePuterStore } from "~/lib/puter";
 
 const Protected = () => {
@@ -10,7 +11,7 @@ const Protected = () => {
   if (!puterReady || isLoading) {
     return (
       <main className="app-page session-page">
-        <Brand />
+        <header className="session-header"><Brand /><ThemeToggle /></header>
         <div className="session-message" role={error ? "alert" : "status"}>
           <ScanText size={24} aria-hidden="true" />
           <h1>{error ? "Let’s reconnect." : "Opening your workspace…"}</h1>

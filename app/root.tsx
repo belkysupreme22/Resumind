@@ -1,5 +1,6 @@
 import {
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
@@ -12,6 +13,8 @@ import "./app.css";
 import { usePuterStore } from "./lib/puter";
 import { useEffect } from "react";
 import { initializeTheme, themeBootstrap } from "./lib/theme";
+import Brand from "./components/Brand";
+import ThemeToggle from "./components/ThemeToggle";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -73,14 +76,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
-      )}
+    <main className="app-page">
+      <header className="public-header signin-header page-container"><Brand /><ThemeToggle /></header>
+      <section className="main-section">
+        <div className="notice-panel" role="alert">
+          <h1>{message}</h1>
+          <p>{details}</p>
+          <Link className="primary-button" to="/">Back to home</Link>
+          {stack && <pre className="error-stack"><code>{stack}</code></pre>}
+        </div>
+      </section>
     </main>
   );
 }
