@@ -83,18 +83,18 @@ You can customize styles in `tailwind.config.js`.
 
 ## Deployment
 
-### Docker
+GitHub Actions runs tests, type checking, and a static production build on pull
+requests. After successful checks on `main`, it can deploy the tested build to
+Puter using the `PUTER_TOKEN` repository secret and `PUTER_SUBDOMAIN` repository
+variable.
 
-Build and run with Docker:
+See [Puter CI/CD setup](docs/deployment.md) for the one-time configuration,
+connecting a Puter app, and rollback instructions.
 
-```bash
-docker build -t resume-analyser .
-docker run -p 3000:3000 resume-analyser
-```
-
-### Manual Deployment
-
-Deploy the output of `npm run build` to your preferred Node hosting platform.
+For a manual deployment, run `npm run build` and `npm run check:build`, then upload
+the contents of `build/client`, including `.puter_site_config`, to your static
+host. The app uses React Router SPA mode and requires the included routing
+fallback for direct workspace links.
 
 ## Authentication
 

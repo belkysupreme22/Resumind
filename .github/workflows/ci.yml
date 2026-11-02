@@ -1,0 +1,110 @@
+name: CI and Puter deployment
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: resumind-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    name: Tests, types, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Check types
+        run: npm run typecheck
+      - name: Build static site
+        run: npm run build
+      - name: Verify deployable files and routing
+        run: npm run check:build
+      - name: Package the tested build, including hidden routing config
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: tar -czf resumind-client.tar.gz -C build/client .
+      - name: Store the tested build
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: resumind-client-${{ github.sha }}
+          path: resumind-client.tar.gz
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 7
+      - name: Explain pending deployment setup
+        if: github.ref == 'refs/heads/main' && vars.PUTER_SUBDOMAIN == ''
+        run: |
+          echo 'Checks passed. To enable deployment, add the PUTER_TOKEN repository secret and PUTER_SUBDOMAIN repository variable, then run this workflow on main.' >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Deploy to Puter
+    needs: checks
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.PUTER_SUBDOMAIN != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ steps.puter.outputs.deployment_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Validate deployment configuration
+        id: config
+        env:
+          PUTER_TOKEN: ${{ secrets.PUTER_TOKEN }}
+          PUTER_SUBDOMAIN: ${{ vars.PUTER_SUBDOMAIN }}
+        run: node scripts/puter-deploy-config.mjs
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: resumind-client-${{ github.sha }}
+          path: deployment-artifact
+      - name: Unpack and verify the tested build
+        run: |
+          mkdir -p build/client
+          tar -xzf deployment-artifact/resumind-client.tar.gz -C build/client
+          node scripts/verify-build.mjs
+      - name: Upload release and switch website to it
+        id: puter
+        uses: HeyPuter/puter-subdomain-deploy-action@88492ccf86048912f8be726a57756e5c3e4ef250 # v1.0.6
+        with:
+          subdomain: ${{ steps.config.outputs.subdomain }}
+          puter_path: ${{ steps.config.outputs.release_path }}
+          source_path: build/client
+          include_hidden: true
+          puter_token: ${{ secrets.PUTER_TOKEN }}
+      - name: Verify live entry page and deep links
+        env:
+          DEPLOYMENT_URL: ${{ steps.puter.outputs.deployment_url }}
+        run: node scripts/verify-deployment.mjs
+      - name: Record release details
+        env:
+          DEPLOYMENT_URL: ${{ steps.puter.outputs.deployment_url }}
+          RELEASE_PATH: ${{ steps.config.outputs.release_path }}
+        run: |
+          node --input-type=module <<'JS'
+          import { appendFileSync } from 'node:fs';
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Deployed ${process.env.GITHUB_SHA}\n\nWebsite: ${process.env.DEPLOYMENT_URL}\n\nRelease folder: ${process.env.RELEASE_PATH}\n\nPrevious release folders are retained for rollback.\n`);
+          JS
