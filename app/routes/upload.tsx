@@ -1,155 +1,155 @@
 import { prepareInstructions } from "../../constants";
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router";
+import { ArrowLeft, ArrowRight, Check, CircleAlert, FileText, LoaderCircle, ScanText } from "lucide-react";
 import FileUploader from "~/components/FileUploader";
 import NavBar from "~/components/Navbar";
-import LoadingVisual from "~/components/LoadingVisual";
 import { convertPdfToImage } from "~/lib/pdf2img";
 import { usePuterStore } from "~/lib/puter";
-import { generateUUID } from "~/lib/utils";
+import { formatSize, generateUUID } from "~/lib/utils";
+import { analyzeResume, type AnalysisDraft, type AnalysisStage } from "~/lib/reviews";
+
+const steps = ["Resume", "Job context", "Review"];
+const stages: { key: AnalysisStage; title: string; description: string }[] = [
+  { key: "preparing", title: "Preparing your resume", description: "Checking your PDF and getting it ready for review." },
+  { key: "reviewing", title: "Reviewing your experience", description: "Looking at ATS suitability, content, structure, tone, and skills." },
+  { key: "saving", title: "Saving your feedback", description: "Adding the completed review to your workspace." },
+];
+
+export const meta = () => [{ title: "Analyze your resume — Resumind" }];
 
 const Upload = () => {
-  const { ai, fs, kv, auth, isLoading } = usePuterStore();
+  const { ai, fs, kv } = usePuterStore();
   const navigate = useNavigate();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [statusText, setStatusText] = useState("");
+  const [step, setStep] = useState(0);
   const [file, setFile] = useState<File | null>(null);
+  const [context, setContext] = useState({ companyName: "", jobTitle: "", jobDescription: "" });
+  const [processing, setProcessing] = useState(false);
+  const [stage, setStage] = useState<AnalysisStage>("preparing");
+  const [error, setError] = useState("");
+  const heading = useRef<HTMLHeadingElement>(null);
+  const errorPanel = useRef<HTMLDivElement>(null);
+  const previousStep = useRef(0);
+  const draft = useRef<AnalysisDraft | null>(null);
+  const busy = useRef(false);
+  const mounted = useRef(true);
 
-  const handleFileSelect = (file: File | null) => {
-    setFile(file);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  useEffect(() => {
+    if (previousStep.current !== step) heading.current?.focus();
+    previousStep.current = step;
+  }, [step]);
+  useEffect(() => { if (error) errorPanel.current?.focus(); }, [error]);
+
+  const selectFile = (next: File | null) => {
+    if (next !== file) {
+      const old = draft.current;
+      draft.current = null;
+      // Only discard uploads created by this unfinished attempt, never saved reviews.
+      if (old && !old.saved) {
+        void Promise.allSettled([old.resumePath, old.imagePath].filter((path): path is string => Boolean(path)).map((path) => fs.delete(path)));
+      }
+    }
+    setFile(next);
+    setError("");
   };
 
-  const handleAnalyze = async ({
-    companyName,
-    jobTitle,
-    jobDescription,
-    file,
-  }: {
-    companyName: string;
-    jobTitle: string;
-    jobDescription: string;
-    file: File;
-  }) => {
-    setIsProcessing(true);
-
-    setStatusText("Uploading the file...");
-    const uploadedFile = await fs.upload([file]);
-    if (!uploadedFile) return setStatusText("Error: Failed uploading file");
-     
-    setStatusText("Converting to Image...");
-    const imageFile = await convertPdfToImage(file);
-    if (!imageFile.file) return setStatusText("Error: Failed converting PDF to image");
-  
-
-    setStatusText("Uploading image...");
-    const uploadedImage = await fs.upload([imageFile.file]);
-    if (!uploadedImage) return setStatusText("Error: Failed to upload image");
-
-    setStatusText("Preparing data...");
-    const uuid = generateUUID();
-    const data = {
-      id: uuid,
-      resumePath: uploadedFile.path,
-      imagePath: uploadedImage.path,
-      companyName,
-      jobTitle,
-      jobDescription,
-      feedback: "",
-    };
-    await kv.set(`resume:${uuid}`, JSON.stringify(data));
-
-    setStatusText("Analyzing...");
-
-    const feedback = await ai.feedback(
-      uploadedFile.path,
-      prepareInstructions({jobTitle, jobDescription})
-    );
-    if (!feedback) return setStatusText("Error: Failed to analyze resume");
-    
-    
-    const feedbackText =
-      typeof feedback.message.content === "string"
-        ? feedback.message.content
-        : feedback.message.content[0].text;
-
-    data.feedback = JSON.parse(feedbackText);
-    await kv.set(`resume:${uuid}`, JSON.stringify(data));
-    setStatusText("Analysis complete, redirecting...");
-    console.log(data);
-    navigate(`/resume/${uuid}`);
+  const updateContext = (key: keyof typeof context, value: string) => {
+    setContext((current) => ({ ...current, [key]: value }));
+    if (draft.current) delete draft.current.feedback;
+    setError("");
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget.closest("form");
-    if (!form) return;
-    const formData = new FormData(form);
-
-    const companyName = formData.get("company-name") as string;
-    const jobTitle = formData.get("job-title") as string;
-    const jobDescription = formData.get("job-description") as string;
-
-    if (!file) return;
-
-    handleAnalyze({ companyName, jobTitle, jobDescription, file });
+  const startAnalysis = async () => {
+    if (!file || busy.current) return;
+    busy.current = true;
+    setProcessing(true);
+    setError("");
+    const currentDraft = draft.current || { id: generateUUID() };
+    draft.current = currentDraft;
+    setStage(currentDraft.feedback ? "saving" : currentDraft.imagePath ? "reviewing" : "preparing");
+    try {
+      const id = await analyzeResume({ file, ...context, prompt: prepareInstructions(context) }, currentDraft, {
+        convert: async (pdf) => {
+          const converted = await convertPdfToImage(pdf);
+          if (converted.imageUrl) URL.revokeObjectURL(converted.imageUrl);
+          return converted.file;
+        },
+        upload: fs.upload,
+        feedback: ai.feedback,
+        save: kv.set,
+      }, (next) => { if (mounted.current) setStage(next); });
+      if (mounted.current) navigate(`/resume/${id}`);
+    } catch (cause) {
+      if (mounted.current) setError(cause instanceof Error ? cause.message : "We couldn’t finish the review. Please try again.");
+    } finally {
+      busy.current = false;
+      if (mounted.current) setProcessing(false);
+    }
   };
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!file || processing) return;
+    if (step < 2) setStep(step + 1);
+    else void startAnalysis();
+  };
+  const stageIndex = stages.findIndex((item) => item.key === stage);
 
   return (
     <main className="app-page upload-page">
       <NavBar />
-      
-      <section className="main-section">
-        <div className="page-heading">
-          <h1>Smart feedback for your dream job</h1>
-          {isProcessing ? (
-            <>
-              <h2>{statusText}</h2>
-              <LoadingVisual src="/images/resume-scan.gif" />
-            </>
+      <section className="main-section wizard-section">
+        <div className="workspace-heading"><h1>Analyze your resume</h1><p>Start with a PDF. Add a role for more focused feedback.</p></div>
+        <div className="wizard-panel">
+          {processing ? (
+            <div className="analysis-progress" role="status" aria-live="polite" aria-atomic="true">
+              <ScanText size={32} strokeWidth={1.5} aria-hidden="true" />
+              <h2>{stages[stageIndex].title}</h2>
+              <p>{stages[stageIndex].description}</p>
+              <ol aria-label="Analysis progress">
+                {stages.map((item, index) => <li key={item.key} data-status={index < stageIndex ? "complete" : index === stageIndex ? "active" : "pending"}>
+                  {index < stageIndex ? <Check size={16} aria-hidden="true" /> : index === stageIndex ? <LoaderCircle size={16} className="progress-spinner" aria-hidden="true" /> : <span className="progress-dot" />}
+                  {item.title}{index < stageIndex && <span className="sr-only">: complete</span>}{index === stageIndex && <span className="sr-only">: in progress</span>}
+                </li>)}
+              </ol>
+              <p className="analysis-keep-open">You can leave this page open while we work. Your completed review will open automatically.</p>
+            </div>
           ) : (
-            <h2>Drop your resume for an ATS score and improvement tips </h2>
-          )}
-          {!isProcessing && (
-            <form
-              id="upload-form"
-              onSubmit={handleSubmit}
-              className="flex flex-col gap-4 mt-8"
-            >
-              <div className="form-div">
-                <label htmlFor="company-name">Company Name</label>
-                <input
-                  type="text"
-                  name="company-name"
-                  placeholder="Company Name"
-                  id="company-name"
-                />
-              </div>
-              <div className="form-div">
-                <label htmlFor="job-title">Job Title</label>
-                <input
-                  type="text"
-                  name="job-title"
-                  placeholder="Job Title"
-                  id="job-title"
-                />
-              </div>
-              <div className="form-div">
-                <label htmlFor="job-description">Job Description</label>
-                <textarea
-                  rows={5}
-                  name="job-description"
-                  placeholder="Job Description"
-                  id="job-description"
-                />
-              </div>
-              <div className="form-div">
-                <label htmlFor="uploader">Upload Resume</label>
-                <FileUploader onFileSelect={handleFileSelect} />
-              </div>
-              <button className="primary-button" type="submit">
-                Analyze Resume
-              </button>
-            </form>
+            <>
+              <ol className="wizard-steps" aria-label="Resume analysis steps">
+                {steps.map((label, index) => <li key={label} aria-current={step === index ? "step" : undefined} data-complete={step > index}>
+                  <span className="wizard-step-number">{step > index ? <Check size={16} aria-hidden="true" /> : index + 1}</span><span>{label}</span>
+                </li>)}
+              </ol>
+              <form className="wizard-form" onSubmit={submit}>
+                <div className="wizard-step-heading"><span>Step {step + 1} of 3</span><h2 ref={heading} tabIndex={-1}>{["Choose your resume", "Add job context", "Review your details"][step]}</h2><p>{["Upload a PDF of your resume to get started.", "Optional. Leave these blank for general resume feedback.", "Check the file and context before starting your analysis."][step]}</p></div>
+                {step === 0 && <FileUploader file={file} onFileSelect={selectFile} />}
+                {step === 1 && <div className="wizard-fields">
+                  <div className="form-div"><label htmlFor="company-name">Company</label><input id="company-name" name="company-name" value={context.companyName} onChange={(event) => updateContext("companyName", event.target.value)} placeholder="e.g. Northstar" /></div>
+                  <div className="form-div"><label htmlFor="job-title">Job title</label><input id="job-title" name="job-title" value={context.jobTitle} onChange={(event) => updateContext("jobTitle", event.target.value)} placeholder="e.g. Frontend Developer" /></div>
+                  <div className="form-div"><label htmlFor="job-description">Job description</label><textarea id="job-description" name="job-description" rows={6} value={context.jobDescription} onChange={(event) => updateContext("jobDescription", event.target.value)} placeholder="Paste the job description" /></div>
+                </div>}
+                {step === 2 && <div className="wizard-review">
+                  <div className="wizard-review-group"><div className="wizard-review-label"><h3>Resume</h3><button className="text-button" type="button" onClick={() => setStep(0)}>Change file</button></div><div className="wizard-file-summary"><FileText size={24} aria-hidden="true" /><div><p>{file?.name}</p><span>{file && formatSize(file.size)}</span></div></div></div>
+                  <div className="wizard-review-group"><div className="wizard-review-label"><h3>Job context</h3><button className="text-button" type="button" onClick={() => setStep(1)}>Edit context</button></div>
+                    {context.companyName.trim() || context.jobTitle.trim() || context.jobDescription.trim() ? <>
+                      <dl className="wizard-context-summary">{context.companyName.trim() && <div><dt>Company</dt><dd>{context.companyName}</dd></div>}{context.jobTitle.trim() && <div><dt>Role</dt><dd>{context.jobTitle}</dd></div>}</dl>
+                      {context.jobDescription.trim() && <details className="wizard-job-description"><summary>Read job description</summary><p>{context.jobDescription}</p></details>}
+                    </> : <p className="text-muted">General resume review. You haven’t added a specific role.</p>}
+                  </div>
+                  <p className="wizard-score-note">You’ll receive an overall score, ATS feedback, and suggestions for tone, content, structure, and skills. Scores are AI estimates.</p>
+                </div>}
+                {error && <div className="analysis-error" ref={errorPanel} role="alert" tabIndex={-1}><CircleAlert size={20} aria-hidden="true" /><div><h3>We couldn’t finish this review</h3><p>{error}</p><p>Your file and details are kept on this page.</p></div></div>}
+                <div className="wizard-actions">
+                  {step > 0 ? <button className="text-button" type="button" onClick={() => setStep(step - 1)}><ArrowLeft size={16} aria-hidden="true" /> Back</button> : <Link className="text-button" to="/dashboard"><ArrowLeft size={16} aria-hidden="true" /> Your reviews</Link>}
+                  <button type="submit" className="primary-button button-emphasis" disabled={!file}>{step === 0 ? "Continue" : step === 1 ? "Review details" : error ? "Try again" : "Analyze resume"}<ArrowRight size={16} aria-hidden="true" /></button>
+                </div>
+              </form>
+            </>
           )}
         </div>
       </section>
