@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import Brand from "./Brand";
 import ThemeToggle from "./ThemeToggle";
 
-const PublicNavbar = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+const PublicNavbar = () => {
   const [open, setOpen] = useState(false);
   const header = useRef<HTMLElement>(null);
   const navigation = useRef<HTMLDivElement>(null);
@@ -58,8 +58,8 @@ const PublicNavbar = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
           <a href="#how-it-works" onClick={close}>How it works</a>
         </nav>
         <div className="public-auth-actions">
-          <Link className="text-button" to={isAuthenticated ? "/dashboard" : "/auth"} onClick={close}>{isAuthenticated ? "My reviews" : "Log In"}</Link>
-          <Link className="primary-button" to={isAuthenticated ? "/upload" : "/auth?next=/upload"} onClick={close}>Get started <ArrowRight size={16} aria-hidden="true" /></Link>
+          <Link className="text-button" to="/auth" onClick={close}>Log In</Link>
+          <Link className="primary-button" to="/auth?next=/upload" onClick={close}>Get started <ArrowRight size={16} aria-hidden="true" /></Link>
         </div>
       </div>
       <div className="public-header-controls">

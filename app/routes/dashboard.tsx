@@ -74,9 +74,8 @@ export default function Dashboard() {
         {deleteError && <div className="review-delete-error" role="alert"><p>{deleteError}</p><button className="text-button" type="button" onClick={() => setDeleteError("")}>Dismiss</button></div>}
         {status === "loading" && <div className="reviews-loading" role="status"><p>Loading your reviews…</p><div className="review-skeleton-grid" aria-hidden="true">{[0, 1, 2].map((item) => <div className="review-skeleton" key={item}><div /><div /><div /></div>)}</div></div>}
         {status === "error" && <WorkspaceState icon={CircleAlert} title="We couldn’t load your reviews" description="Your saved reviews haven’t loaded. Try again to reconnect to your workspace." role="alert"><button className="primary-button" type="button" onClick={() => void loadReviews()}>Try again</button></WorkspaceState>}
-        {status === "ready" && reviews.length === 0 && <WorkspaceState icon={ScanText} title={hadReviews.current ? "Your workspace is clear" : "Your first review starts here"} description="Upload a PDF, add a role if you have one, and get feedback you can return to.">
+        {status === "ready" && reviews.length === 0 && <WorkspaceState icon={ScanText} title={hadReviews.current ? "Your workspace is clear" : "Your first review starts here"} description="Upload your resume and add a job title and description to get targeted feedback.">
           <Link className="primary-button button-emphasis" to="/upload"><Upload size={16} aria-hidden="true" />{hadReviews.current ? "Analyze a resume" : "Analyze your first resume"}</Link>
-          <Link className="text-button" to="/#sample-review">Explore the demo <ArrowRight size={16} aria-hidden="true" /></Link>
         </WorkspaceState>}
         {status === "ready" && reviews.length > 0 && <div className="resumes-section">
           {reviews.map((entry) => <div className="resume-entry" key={entry.kvKey}>

@@ -1,5 +1,5 @@
 import { ArrowRight, FileSearch, History, Target } from "lucide-react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import BackToTop from "~/components/BackToTop";
 import LandingPreview from "~/components/LandingPreview";
 import PublicNavbar from "~/components/PublicNavbar";
@@ -25,12 +25,13 @@ const steps = [
 
 const Landing = () => {
   const isAuthenticated = usePuterStore((state) => state.auth.isAuthenticated);
-  const analyzePath = isAuthenticated ? "/upload" : "/auth?next=/upload";
+  const analyzePath = "/auth?next=/upload";
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
   return (
     <main className="app-page landing-page" id="top">
       <a className="skip-link" href="#main-content">Skip to content</a>
-      <PublicNavbar isAuthenticated={isAuthenticated} />
+      <PublicNavbar />
 
       <section className="landing-hero page-container" id="main-content" aria-labelledby="hero-title" tabIndex={-1}>
         <h1 id="hero-title">A stronger resume.<br /><span>A clearer next step.</span></h1>
@@ -68,7 +69,7 @@ const Landing = () => {
           <div className="workflow-copy">
             <h2>Different roles.<br />One clear view.</h2>
             <p>Keep your resumes and their reviews together. See the company, the role, and your overall score at a glance.</p>
-            <Link className="text-button" to={isAuthenticated ? "/dashboard" : "/auth?next=/dashboard"}>Open your workspace <ArrowRight size={16} aria-hidden="true" /></Link>
+            <Link className="text-button" to="/auth?next=/dashboard">Open your workspace <ArrowRight size={16} aria-hidden="true" /></Link>
           </div>
         </div>
       </section>
