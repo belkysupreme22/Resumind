@@ -89,10 +89,10 @@ const CategoryContent = ({
   );
 };
 
-const Details = ({ feedback }: { feedback: Feedback }) => {
+const Details = ({ feedback, defaultOpen }: { feedback: Feedback; defaultOpen?: string }) => {
   return (
       <div className="flex flex-col gap-4 w-full">
-        <Accordion>
+        <Accordion defaultOpen={defaultOpen} allowMultiple>
           <AccordionItem id="tone-style">
             <AccordionHeader itemId="tone-style">
               <CategoryHeader

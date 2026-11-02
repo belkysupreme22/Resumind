@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./styles/controls.css";
 @import "./styles/marketing.css";
 @source not "../livery-scholarxiv-com-v4";
 
@@ -410,7 +411,7 @@ form {
   .uploader-selected-file > button { flex-shrink: 0; }
 }
 
-:where(a, button, input, textarea, [role="button"]):focus-visible {
+:where(a, button, input, textarea, summary, [role="button"]):focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 4px;
   box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
@@ -420,11 +421,9 @@ button:disabled { cursor: not-allowed; }
 
 * { scrollbar-width: thin; scrollbar-color: var(--color-control-border) var(--color-surface); }
 
-[data-theme="dark"] .navbar > a:first-child {
-  background: #ffffff;
-  border-radius: 4px;
-  padding: 8px;
-  margin-left: -8px;
+[data-theme="dark"] .brand-wordmark {
+  background-image: none;
+  color: var(--color-ink);
 }
 
 @media (max-width: 1100px) {

@@ -1,70 +1,51 @@
-import { Check, FileText, Lightbulb, ScanText } from "lucide-react";
-import ScoreGauge from "./ScoreGauge";
-
-const sampleScores = [
-  { label: "Tone & style", score: 84 },
-  { label: "Content", score: 76 },
-  { label: "Structure", score: 90 },
-  { label: "Skills", score: 82 },
-];
+import { ChevronDown, FileText, MousePointer2, ScanText } from "lucide-react";
+import ReviewResults from "./ReviewResults";
+import { sampleFeedback } from "~/lib/sample-review";
 
 const LandingPreview = () => (
-  <figure className="product-preview">
+  <section className="product-preview" aria-labelledby="sample-review-title">
     <div className="preview-toolbar">
-      <span className="preview-toolbar-title"><ScanText size={16} aria-hidden="true" /> A little perspective.</span>
-      <span className="preview-example-label">Example review</span>
+      <h2 className="preview-toolbar-title" id="sample-review-title"><ScanText size={16} aria-hidden="true" /> Explore a complete review.</h2>
+      <span className="preview-example-label">Interactive sample</span>
     </div>
-    <div className="preview-body">
-      <div className="preview-document-wrap" aria-hidden="true">
-        <div className="preview-document-label"><FileText size={16} /> Your experience</div>
-        <div className="preview-paper">
-          <div className="preview-paper-heading">Alex Morgan</div>
-          <p className="preview-paper-role">Frontend Engineer</p>
-          <div className="preview-paper-rule" />
-          <h3>Profile</h3>
-          <p>Building thoughtful, accessible experiences for the web.</p>
-          <h3>Experience</h3>
-          <strong>Frontend Engineer</strong>
-          <p className="preview-paper-meta">Northstar · 2023 — Present</p>
-          <ul>
-            <li>Built a shared component library for 12 product teams.</li>
-            <li>Improved page performance and keyboard accessibility.</li>
-          </ul>
-          <h3>Skills</h3>
-          <p>React · TypeScript · Accessibility · Design systems</p>
-          <h3>Education</h3>
-          <p>BSc Computer Science</p>
-        </div>
-      </div>
-      <div className="preview-feedback">
-        <div className="preview-score-heading">
-          <ScoreGauge score={82} />
-          <div>
-            <span className="eyebrow">The bigger picture</span>
-            <h3>A strong foundation.</h3>
-            <p>A few focused changes can make your experience clearer.</p>
-          </div>
-        </div>
-        <div className="preview-categories">
-          {sampleScores.map(({ label, score }) => (
-            <div key={label}>
-              <span>{label}</span>
-              <span className="preview-category-score">{score}<span>/100</span></span>
-            </div>
-          ))}
-        </div>
-        <div className="preview-tip preview-tip-good">
-          <Check size={16} aria-hidden="true" />
-          <div><strong>Keep the relevant experience.</strong><p>Your recent work tells a clear story.</p></div>
-        </div>
-        <div className="preview-tip preview-tip-improve">
-          <Lightbulb size={16} aria-hidden="true" />
-          <div><strong>Make your impact measurable.</strong><p>Add the outcome, not just the responsibility.</p></div>
-        </div>
+    <div className="sample-review-layout">
+      <aside className="sample-context" aria-label="Sample application">
+        <span className="eyebrow">An example, from start to finish</span>
+        <h3>A little perspective<br />on the next move.</h3>
+        <p>This is the complete result format you’ll see after an analysis: your overall score, ATS feedback, and a closer look at every category.</p>
+        <dl className="sample-role">
+          <div><dt>Candidate</dt><dd>Alex Morgan</dd></div>
+          <div><dt>Applying for</dt><dd>Frontend Developer</dd></div>
+          <div><dt>Company</dt><dd>Northstar</dd></div>
+        </dl>
+        <p className="sample-instruction"><MousePointer2 size={16} aria-hidden="true" /> Open any category to read what works and what to improve. You can keep several open.</p>
+        <details className="sample-document">
+          <summary><FileText size={16} aria-hidden="true" /> Read the sample resume <ChevronDown size={16} className="sample-document-chevron" aria-hidden="true" /></summary>
+          <article className="sample-paper" aria-label="Alex Morgan’s sample resume">
+            <h4>Alex Morgan</h4>
+            <p>Frontend Developer · alex@example.com</p>
+            <h5>Profile</h5>
+            <p>Engineer building thoughtful, accessible web experiences.</p>
+            <h5>Experience</h5>
+            <strong>Frontend Engineer</strong>
+            <p>Northstar · 2023 — Present</p>
+            <ul><li>Built reusable interfaces with React and TypeScript.</li><li>Improved accessibility and reduced page load times.</li><li>Worked with design and product teams to ship features.</li></ul>
+            <strong>Software Developer</strong>
+            <p>Acme · 2021 — 2023</p>
+            <ul><li>Developed responsive dashboards and internal tools.</li><li>Maintained a shared component library.</li></ul>
+            <h5>Skills</h5>
+            <p>React · TypeScript · CSS · Testing · Accessibility</p>
+            <h5>Education</h5>
+            <p>BSc Computer Science</p>
+          </article>
+        </details>
+        <p className="sample-disclaimer">Illustrative sample data. Your AI feedback will depend on your resume and the role; scores are estimates.</p>
+      </aside>
+      <div className="sample-results" aria-label="Complete sample analysis results">
+        <ReviewResults feedback={sampleFeedback} defaultOpen="tone-style" />
       </div>
     </div>
-    <figcaption>Illustrative feedback. Your review is based on your resume and the job details you provide.</figcaption>
-  </figure>
+  </section>
 );
 
 export default LandingPreview;
