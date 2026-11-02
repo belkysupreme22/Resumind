@@ -84,10 +84,33 @@ The deployer switches the website binding only after all files upload. Previous
 release folders remain available. Runs on `main` are serialized rather than
 cancelling a deployment while it is uploading.
 
-All third-party actions are pinned to verified commit SHAs. The workflow uses
-read-only GitHub repository permissions; the Puter token is confined to the
+All third-party actions are pinned to verified commit SHAs. Checks and deployment
+use read-only GitHub repository permissions; the Puter token is confined to the
 deployment job. A configured `production` environment can add repository-specific
 deployment rules.
+
+## GitHub Releases
+
+After deployment and live verification succeed, a separate job publishes a
+GitHub Release with the live website URL, deployed commit, workflow link, Puter
+release folder, and the tested `resumind-client.tar.gz` archive. Failed or skipped
+deployments and pull requests do not publish releases.
+
+Each deployment has a tag `deploy-<run-id>-<run-attempt>`, pointing to the exact
+deployed commit. The release is marked **Latest**. Repeating the publishing step
+for the same deployment reuses an existing release and can finish a draft left
+by an interrupted upload; it leaves an already published release unchanged.
+
+Only the release job receives `contents: write` through GitHub's built-in
+`GITHUB_TOKEN`. No additional secret or Puter credentials are passed to that job.
+Repository rules restricting tag creation or releases must allow this workflow.
+
+The website URL always follows the latest deployment. For an older version,
+use its attached build archive or retained Puter folder. The Puter `releases`
+directory and GitHub Releases are separate records.
+
+If publishing fails after deployment, the website remains deployed. Correct the
+release permission or upload issue and re-run the failed job in GitHub Actions.
 
 ## Hosting permission failures
 

@@ -1,110 +1,85 @@
-# AI-Powered Resume Analyser
+# Resumind
 
-A modern, full-stack React application for uploading, tracking, and receiving AI-powered feedback on your resumes.  
-This project leverages [Puter](https://puter.com/) for cloud storage, authentication, AI feedback, and key-value data management.
+Resume analysis with feedback tailored to a job title and description. Built with
+React, React Router, TypeScript, and Puter.
 
-**Live Demo:**  
-[ai-resume-analyser.puter.app](https://puter.com/app/ai-powered-resume-analyser) 
+[Live application](https://resumindd.puter.site) ·
+[Releases](https://github.com/belkysupreme22/Resumind/releases) ·
+[CI/CD](https://github.com/belkysupreme22/Resumind/actions)
 
 ## Features
 
-- 📄 Upload and manage multiple resumes in the cloud
-- 🤖 Get smart, AI-powered feedback for your resume using Puter AI
-- 👤 User authentication and profile management via Puter
-- 🗑️ Delete resumes with a single click
-- 🎨 Beautiful UI with TailwindCSS
-- 🔒 TypeScript by default
-
-## Powered by Puter
-
-This app uses [Puter](https://docs.puter.com/introduction/) for:
-
-- **Authentication:** Sign in/out, get current user, check authentication status
-- **Cloud Storage:** Upload, read, write, and delete files (resumes) in the cloud
-- **AI Services:** Chat-based feedback and image-to-text extraction for resumes
-- **Key-Value Store:** Save and retrieve resume metadata and feedback
-
-All Puter features are accessed via a global `window.puter` object and managed in React using [Zustand](https://zustand-demo.pmnd.rs/).
-
-## Getting Started
-
-### Installation
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-### Development
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-Your application will be available at [http://localhost:5173](http://localhost:5173).
+- Guided PDF upload with required job context and a review step before analysis.
+- Overall and ATS scores, plus feedback on tone, content, structure, and skills.
+- Saved reviews, resume previews, and file management in a signed-in dashboard.
+- Interactive sample review, responsive navigation, and light, dark, or system themes.
+- Validation, loading and empty states, and retries that preserve completed analysis work.
 
 ## Usage
 
-- **Upload Resume:** Click the "Upload Resume" button to add your resume and receive instant feedback.
-- **Profile & Logout:** Access your profile and logout options via the profile icon next to the upload button.
-- **Resume Management:** View, review, and delete your uploaded resumes from the dashboard.
+1. Sign in with Puter.
+2. Upload a PDF resume, up to 20 MB.
+3. Enter the job title and description; the company name is optional.
+4. Review your details, start analysis, and open the saved feedback.
 
-## Project Structure
+Scores are AI-generated estimates. Review the suggestions before changing your resume.
 
-```
-├── app/
-│   ├── components/
-│   │   └── Navbar.tsx         # Navigation bar with profile and upload button
-│   │   └── ResumeCard.tsx     # Resume display card
-│   ├── routes/
-│   │   └── home.tsx           # Main dashboard page
-│   │   └── upload.tsx         # Resume upload page
-│   └── lib/
-│       └── puter.ts           # Puter integration and Zustand store
-├── public/
-│   └── images/                # Static images (background, loading GIF, etc.)
-├── README.md
-├── package.json
-├── tailwind.config.js
+## Local development
+
+Use Node.js 24, as specified in `.node-version`.
+
+```bash
+npm ci
+npm run dev
 ```
 
-## Puter Integration
+Open the local URL printed by Vite, usually `http://localhost:5173`.
+Puter sign-in and cloud services require an internet connection.
 
-See [`app/lib/puter.ts`](app/lib/puter.ts) for full API details.  
-The Zustand store wraps Puter’s API for authentication, file storage, AI feedback, and key-value operations.
+## Validation and build
 
-## Styling
+```bash
+npm test
+npm run typecheck
+npm run build
+npm run check:build
+```
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for rapid and responsive UI development.  
-You can customize styles in `tailwind.config.js`.
+The production output is `build/client`. This is a static React Router SPA;
+direct workspace links require the included `.puter_site_config` routing fallback.
 
-## Deployment
+## Architecture
 
-GitHub Actions runs tests, type checking, and a static production build on pull
-requests. After successful checks on `main`, it can deploy the tested build to
-Puter using the `PUTER_TOKEN` repository secret and `PUTER_SUBDOMAIN` repository
-variable.
+Puter provides authentication, file storage, AI analysis, and key-value storage.
+The browser uses the Puter SDK through a Zustand store; no custom backend is required.
+PDF.js generates resume previews locally. Tailwind CSS and shared CSS tokens
+define the interface, with Lucide icons and Archivo typography.
 
-See [Puter CI/CD setup](docs/deployment.md) for the one-time configuration,
-connecting a Puter app, and rollback instructions.
+| Location | Purpose |
+| --- | --- |
+| `app/routes/` | Landing, sign-in, dashboard, upload, and review pages |
+| `app/components/` | Shared navigation, feedback, theme, and state components |
+| `app/lib/puter.ts` | Puter SDK integration and application store |
+| `app/lib/reviews.ts` | Analysis stages, feedback validation, and retry handling |
+| `app/app.css`, `app/styles/` | Typography, themes, and component styles |
+| `constants/index.ts` | Analysis prompts and expected feedback format |
+| `scripts/`, `tests/` | Deployment tooling and automated checks |
 
-For a manual deployment, run `npm run build` and `npm run check:build`, then upload
-the contents of `build/client`, including `.puter_site_config`, to your static
-host. The app uses React Router SPA mode and requires the included routing
-fallback for direct workspace links.
+## Deployment and releases
 
-## Authentication
+GitHub Actions checks pull requests. Successful deployments from `main` upload
+the tested build to Puter, verify the live routes, and publish a GitHub Release
+with the website URL, commit, deployment folder, and build archive.
 
-- Users must be authenticated to access the dashboard and upload resumes.
-- Profile icon displays the authenticated user's name and provides a logout option.
+Configure these under **Settings → Secrets and variables → Actions**:
 
-## Contributing
+| Type | Name | Value |
+| --- | --- | --- |
+| Secret | `PUTER_TOKEN` | Account API token with access to the hosted website |
+| Variable | `PUTER_SUBDOMAIN` | `resumindd` for the current deployment |
 
-Feel free to fork and contribute! Pull requests are welcome.
+Release publishing uses the workflow's `GITHUB_TOKEN`; no additional secret is
+required. Set the Puter app's **Index URL** to `https://resumindd.puter.site`.
 
----
-
-Built with ❤️ using React, React Router, TailwindCSS, and Puter.
+See [deployment documentation](docs/deployment.md) for setup, permissions,
+release behavior, and rollback instructions.
