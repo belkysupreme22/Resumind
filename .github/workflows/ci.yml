@@ -86,15 +86,14 @@ jobs:
           mkdir -p build/client
           tar -xzf deployment-artifact/resumind-client.tar.gz -C build/client
           node scripts/verify-build.mjs
+      - name: Install pinned deployment SDK without install scripts
+        run: npm ci --ignore-scripts
       - name: Upload release and switch website to it
         id: puter
-        uses: HeyPuter/puter-subdomain-deploy-action@88492ccf86048912f8be726a57756e5c3e4ef250 # v1.0.6
-        with:
-          subdomain: ${{ steps.config.outputs.subdomain }}
-          puter_path: ${{ steps.config.outputs.release_path }}
-          source_path: build/client
-          include_hidden: true
-          puter_token: ${{ secrets.PUTER_TOKEN }}
+        env:
+          PUTER_TOKEN: ${{ secrets.PUTER_TOKEN }}
+          PUTER_SUBDOMAIN: ${{ vars.PUTER_SUBDOMAIN }}
+        run: node scripts/deploy-puter.mjs
       - name: Verify live entry page and deep links
         env:
           DEPLOYMENT_URL: ${{ steps.puter.outputs.deployment_url }}
@@ -102,7 +101,7 @@ jobs:
       - name: Record release details
         env:
           DEPLOYMENT_URL: ${{ steps.puter.outputs.deployment_url }}
-          RELEASE_PATH: ${{ steps.config.outputs.release_path }}
+          RELEASE_PATH: ${{ steps.puter.outputs.release_path }}
         run: |
           node --input-type=module <<'JS'
           import { appendFileSync } from 'node:fs';
