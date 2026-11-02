@@ -25,7 +25,8 @@ async function fixture(t) {
       write: async (file, data, options) => { calls.push(['write', file, data.toString(), options]); return { uid: file, path: file }; },
     },
     hosting: {
-      get: async () => { calls.push(['get-site']); throw missing(); },
+      get: async () => { calls.push(['get-site']); throw { code: 'forbidden' }; },
+      list: async () => { calls.push(['list-sites']); return []; },
       create: async (subdomain, directory) => { calls.push(['create-site', subdomain, directory]); return { subdomain }; },
       update: async (subdomain, directory) => { calls.push(['update-site', subdomain, directory]); return { subdomain }; },
     },
@@ -34,7 +35,7 @@ async function fixture(t) {
   return { puter, calls, run };
 }
 
-test('first deployment creates a missing release folder and site, including the exact reported error', async (t) => {
+test('first deployment works when a named website lookup would be forbidden and the release folder is missing', async (t) => {
   const { calls, run } = await fixture(t);
   const result = await run();
   const writes = calls.filter(([operation]) => operation === 'write');
@@ -42,6 +43,8 @@ test('first deployment creates a missing release folder and site, including the 
   assert.equal(result.releasePath, `/alice/${releasePath.slice(2)}`);
   assert.equal(result.deployedFiles, 3);
   assert.equal(calls.filter(([operation]) => operation === 'mkdir').length, 1);
+  assert.equal(calls.filter(([operation]) => operation === 'list-sites').length, 1);
+  assert.equal(calls.some(([operation]) => operation === 'get-site'), false);
   assert.equal(writes.length, 3);
   assert.ok(writes.some(([, name]) => name.endsWith('/.puter_site_config')));
   assert.ok(writes.every(([, name, , options]) => name.startsWith('/alice/Sites/') && options.createMissingParents && options.overwrite && options.dedupeName === false));
@@ -50,7 +53,10 @@ test('first deployment creates a missing release folder and site, including the 
 
 test('an existing website is repointed only after every upload finishes', async (t) => {
   const { puter, calls, run } = await fixture(t);
-  puter.hosting.get = async () => ({ subdomain: 'resumind', root_dir: { uid: 'previous-folder' } });
+  puter.hosting.list = async () => [
+    { subdomain: 'another-site', root_dir: { uid: 'unrelated-folder' } },
+    { subdomain: 'resumind', root_dir: { uid: 'previous-folder' } },
+  ];
   const write = puter.fs.write;
   puter.fs.write = async (...args) => { const result = await write(...args); calls.push(['upload-complete']); return result; };
   await run();
@@ -61,7 +67,7 @@ test('an existing website is repointed only after every upload finishes', async 
 
 test('a failed upload leaves the current website binding untouched', async (t) => {
   const { puter, calls, run } = await fixture(t);
-  puter.hosting.get = async () => ({ subdomain: 'resumind', root_dir: { uid: 'previous-folder' } });
+  puter.hosting.list = async () => [{ subdomain: 'resumind', root_dir: { uid: 'previous-folder' } }];
   puter.fs.write = async () => { throw { code: 'storage_limit_reached' }; };
   await assert.rejects(run(), /Uploading 3 release files failed \(storage_limit_reached\)/);
   assert.equal(calls.some(([operation]) => ['create-site', 'update-site'].includes(operation)), false);
@@ -72,6 +78,36 @@ test('permission failures are not treated as missing folders', async (t) => {
   puter.fs.stat = async () => { throw { code: 'permission_denied' }; };
   await assert.rejects(run(), /Preparing release directory failed \(permission_denied\)/);
   assert.equal(calls.some(([operation]) => ['mkdir', 'write', 'create-site', 'update-site'].includes(operation)), false);
+});
+
+test('a forbidden website list stops before any filesystem or hosting mutation', async (t) => {
+  const { puter, calls, run } = await fixture(t);
+  puter.hosting.list = async () => { throw { code: 'forbidden', request: { token: 'sensitive-example' } }; };
+  await assert.rejects(run(), (error) => error.message.includes('Listing accessible websites failed (forbidden)') && !error.message.includes('sensitive-example'));
+  assert.equal(calls.some(([operation]) => ['stat', 'mkdir', 'write', 'create-site', 'update-site'].includes(operation)), false);
+});
+
+test('an invalid website list stops rather than attempting to create a site', async (t) => {
+  const { puter, calls, run } = await fixture(t);
+  puter.hosting.list = async () => ({ error: { code: 'forbidden' } });
+  await assert.rejects(run(), /Listing accessible websites failed/);
+  assert.equal(calls.some(([operation]) => ['stat', 'mkdir', 'write', 'create-site', 'update-site'].includes(operation)), false);
+});
+
+test('a name absent from accessible websites is never updated when creation is denied', async (t) => {
+  const { puter, calls, run } = await fixture(t);
+  puter.hosting.list = async () => [{ subdomain: 'another-site' }];
+  puter.hosting.create = async () => { calls.push(['create-site']); throw { code: 'forbidden' }; };
+  await assert.rejects(run(), (error) => error.message.includes('Creating website binding failed (forbidden)') && error.message.includes('owner\'s account API token or choose another PUTER_SUBDOMAIN'));
+  assert.equal(calls.filter(([operation]) => operation === 'create-site').length, 1);
+  assert.equal(calls.some(([operation]) => operation === 'update-site'), false);
+});
+
+test('a website name conflict gives an account or subdomain remedy without changing any existing binding', async (t) => {
+  const { puter, calls, run } = await fixture(t);
+  puter.hosting.create = async () => { throw { code: 'conflict', request: { token: 'sensitive-example' } }; };
+  await assert.rejects(run(), (error) => error.message.includes('Creating website binding failed (conflict)') && error.message.includes('PUTER_SUBDOMAIN') && !error.message.includes('sensitive-example'));
+  assert.equal(calls.some(([operation]) => operation === 'update-site'), false);
 });
 
 test('invalid credentials fail before filesystem or hosting mutations', async (t) => {

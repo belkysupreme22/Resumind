@@ -71,6 +71,12 @@ expands the release folder against the authenticated account's home directory,
 and creates missing parent folders. Puter's `subject_does_not_exist` response is
 handled as a missing resource rather than an authentication failure.
 
+Before uploading, it lists all websites accessible to the token. An existing
+matching website is updated; otherwise the deployer attempts to create the
+requested name after uploading. A name missing from the list is not guaranteed
+to be available: Puter still rejects creation if someone else owns it. The
+deployer does not bypass permission failures or update an inaccessible website.
+
 The deployer switches the website binding only after all files upload. Previous
 release folders remain available. Runs on `main` are serialized rather than
 cancelling a deployment while it is uploading.
@@ -79,6 +85,29 @@ All third-party actions are pinned to verified commit SHAs. The workflow uses
 read-only GitHub repository permissions; the Puter token is confined to the
 deployment job. A configured `production` environment can add repository-specific
 deployment rules.
+
+## Hosting permission failures
+
+Passing the credential check confirms identity, not permission to manage a
+particular website. A `forbidden` response during a named website lookup does
+not establish that the requested name is available.
+
+The deploy log prints the authenticated Puter username (never the token). Compare
+that username with the account that owns the website when diagnosing access.
+
+- If **Listing accessible websites** fails, ensure `PUTER_TOKEN` is an account
+  API token with hosting access. Create it in the intended owner's Puter account
+  using [Puter's token guide](https://developer.puter.com/tutorials/puter-auth-token/),
+  then update the GitHub repository secret directly.
+- If **Creating website binding** reports a name conflict, use a different
+  `PUTER_SUBDOMAIN`, or use the owning account's token if the website is yours.
+  Creating a Resumind app in Dev Center does not reserve `resumind.puter.site`.
+- If **Creating website binding** or **Updating website binding** is forbidden,
+  check the token's hosting permissions, website ownership, and any account
+  restrictions. A valid sign-in alone does not grant hosting write access.
+
+After correcting the settings, run the workflow on `main` again. Never paste
+the token into an issue, workflow log, or chat.
 
 ## Rollback
 
