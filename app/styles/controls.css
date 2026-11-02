@@ -1,6 +1,5 @@
 @layer components {
   .brand-link { display: inline-flex; align-items: center; flex-shrink: 0; }
-  .eyebrow { display: inline-block; font-size: 12px; line-height: 1.5; font-weight: 500; color: var(--color-muted); }
   .primary-button.button-emphasis, .auth-button.button-emphasis { background: var(--color-ink); color: var(--color-canvas); border-color: var(--color-ink); }
   .primary-button.button-emphasis:hover, .auth-button.button-emphasis:hover { background: color-mix(in srgb, var(--color-ink) 85%, var(--color-canvas)); }
   .text-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 16px; border-radius: 6px; color: var(--color-muted); font-size: 14px; font-weight: 500; }
@@ -14,7 +13,7 @@
   .review-results { display: flex; flex-direction: column; gap: 32px; }
   .sample-review-layout { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr); }
   .sample-context { min-width: 0; padding: 32px; background: var(--color-surface); border-right: 1px solid var(--color-line); }
-  .sample-context h3 { margin-top: 16px; font-size: 32px; line-height: 1.15; font-weight: 500; letter-spacing: -0.01em; }
+  .sample-context h3 { font-size: 32px; line-height: 1.15; font-weight: 500; letter-spacing: -0.01em; }
   .sample-context > p { margin-top: 24px; color: var(--color-muted); font-size: 14px; line-height: 1.8; }
   .sample-role { display: grid; gap: 16px; margin-top: 32px; padding-block: 24px; border-block: 1px solid var(--color-line); }
   .sample-role dt { color: var(--color-muted); font-size: 12px; }

@@ -10,9 +10,8 @@ const LandingPreview = () => (
     </div>
     <div className="sample-review-layout">
       <aside className="sample-context" aria-label="Sample application">
-        <span className="eyebrow">An example, from start to finish</span>
-        <h3>A little perspective<br />on the next move.</h3>
-        <p>This is the complete result format you’ll see after an analysis: your overall score, ATS feedback, and a closer look at every category.</p>
+        <h3>Sample application</h3>
+        <p>Explore the overall score, ATS feedback, and detailed suggestions for every category.</p>
         <dl className="sample-role">
           <div><dt>Candidate</dt><dd>Alex Morgan</dd></div>
           <div><dt>Applying for</dt><dd>Frontend Developer</dd></div>

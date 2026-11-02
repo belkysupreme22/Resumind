@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, CircleAlert, FileSearch, History, LogIn, ScanText, ShieldCheck, Target } from "lucide-react";
+import { ArrowLeft, ArrowRight, CircleAlert, LogIn, ScanText, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import Brand from "~/components/Brand";
@@ -46,7 +46,6 @@ const Auth = () => {
         <section className="signin-brand-panel" aria-label="Resumind">
           <ScanText className="signin-brand-symbol" size={88} strokeWidth={1.25} aria-hidden="true" />
           <Brand />
-          <p>A clearer next step.</p>
         </section>
         <section className="signin-card" aria-labelledby="welcome-title">
           <h1 id="welcome-title">Welcome back</h1>
@@ -63,17 +62,10 @@ const Auth = () => {
             {!waiting && <ArrowRight size={16} aria-hidden="true" />}
           </button>
           {error && <p className="signin-error" role="alert"><CircleAlert size={16} aria-hidden="true" /> {reconnect ? "We couldn’t connect to Puter. Please try again." : error}</p>}
-          <div className="signin-divider"><span>Your next move starts here</span></div>
-          <ul className="signin-benefits">
-            <li><FileSearch size={16} aria-hidden="true" /><span>Understand your ATS fit.</span></li>
-            <li><Target size={16} aria-hidden="true" /><span>Keep the role in view.</span></li>
-            <li><History size={16} aria-hidden="true" /><span>Return to your saved reviews.</span></li>
-          </ul>
           <div className="signin-provider-note"><ShieldCheck size={16} aria-hidden="true" /><p>Puter handles your sign-in. Resumind never asks for your password.</p></div>
           <div className="signin-card-footer"><p>New here? You can create a Puter account in the sign-in window.</p><Link to="/#sample-review">See a sample review <ArrowRight size={14} aria-hidden="true" /></Link></div>
         </section>
       </div>
-      <footer className="signin-footer page-container"><span>Made for your next move.</span><Link to="/">Explore Resumind <ArrowRight size={14} aria-hidden="true" /></Link></footer>
     </main>
   );
 };
