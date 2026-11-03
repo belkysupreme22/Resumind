@@ -1,5 +1,5 @@
 import { Check, Monitor, Moon, Sun } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useThemeStore, type ThemePreference } from "~/lib/theme";
 
 const themes = [
@@ -14,6 +14,14 @@ const ThemeToggle = () => {
   const summary = useRef<HTMLElement>(null);
   const CurrentIcon = themes.find((theme) => theme.value === preference)?.icon || Monitor;
 
+  useEffect(() => {
+    const dismissOutside = (event: PointerEvent) => {
+      if (details.current && !details.current.contains(event.target as Node)) details.current.open = false;
+    };
+    document.addEventListener("pointerdown", dismissOutside);
+    return () => document.removeEventListener("pointerdown", dismissOutside);
+  }, []);
+
   const select = (value: ThemePreference) => {
     setPreference(value);
     if (details.current) details.current.open = false;
@@ -25,7 +33,9 @@ const ThemeToggle = () => {
       ref={details}
       className="theme-switcher"
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+        // Safari does not focus a button when it is clicked. Its null focus
+        // target must not hide the options before the click can select one.
+        if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
